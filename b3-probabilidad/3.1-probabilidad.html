@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Probabilidad · MatEBAUticas</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+/* ─────────────────────────────────────────
+   Estilos exclusivos del módulo 3.1
+   ───────────────────────────────────────── */
+
+.page-content {
+  padding: 20px 18px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeUp 0.4s ease both;
+}
+
+/* ── DIAGRAMA SVG ── */
+.diagram-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.diagram-label {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.diagram-label-text {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mode-chip {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--purple-dim);
+  color: var(--purple);
+  border: 1px solid rgba(167,139,250,0.25);
+  transition: all 0.2s;
+}
+
+.mode-chip.tree {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border-color: rgba(74,158,255,0.25);
+}
+
+#svg-canvas {
+  width: 100%;
+  display: block;
+}
+
+/* ── DISPLAY OPERACIÓN ACTIVA ── */
+.op-display {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 62px;
+}
+
+.op-display-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.op-display-value {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.op-result-chip {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--lime);
+  background: var(--lime-dim);
+  border: 1px solid rgba(184,255,60,0.2);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── SLIDERS ── */
+.sliders-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 18px 14px;
+}
+
+.sliders-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 68px 1fr 46px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.slider-row:last-child { margin-bottom: 0; }
+
+.slider-name {
+  font-family: var(--font-title);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 10px;
+  background: var(--border);
+  width: 100%;
+  cursor: pointer;
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--bg);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+input[type=range]:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+input[type=range]#ia::-webkit-slider-thumb { border: 2px solid var(--blue); }
+input[type=range]#ib::-webkit-slider-thumb { border: 2px solid var(--purple); }
+input[type=range]#ii::-webkit-slider-thumb { border: 2px solid var(--lime); }
+
+.slider-val {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--text-soft);
+}
+
+/* ── BOTONES DE OPERACIÓN ── */
+.ops-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.ops-group-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  margin-top: 14px;
+  display: block;
+}
+
+.ops-group-label:first-child { margin-top: 0; }
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+.ops-grid.two { grid-template-columns: 1fr 1fr; }
+.ops-grid.one { grid-template-columns: 1fr; }
+
+.op-btn {
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0;
+  height: 52px;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-align: center;
+  line-height: 1.2;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.op-btn:active {
+  background: var(--bg2);
+  transform: scale(0.96);
+}
+
+.op-btn.active {
+  background: var(--purple-dim);
+  border-color: rgba(167,139,250,0.4);
+  color: var(--purple);
+}
+
+.op-btn.clear {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.overline { text-decoration: overline; }
+
+/* ── FÓRMULA ── */
+.formula-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--purple);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.formula-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--purple);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.formula-text {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ── INDEPENDENCIA ── */
+.indep-card {
+  background: rgba(184,255,60,0.04);
+  border: 1px dashed rgba(184,255,60,0.2);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.indep-card strong {
+  color: var(--lime);
+  font-weight: 600;
+}
+
+.indep-formula {
+  display: block;
+  text-align: center;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--lime);
+  margin-top: 8px;
+  letter-spacing: -0.01em;
+}
+
+/* ── STAT CARDS ── */
+.results-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.stat-mini {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.stat-mini.highlight {
+  background: var(--purple-dim);
+  border-color: rgba(167,139,250,0.3);
+}
+
+.stat-mini-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-mini-val {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  display: block;
+  letter-spacing: -0.02em;
+}
+
+.stat-mini.highlight .stat-mini-val {
+  color: var(--purple);
+}
+</style>
+</head>
+<body>
+
+<!-- CABECERA FIJA -->
+<header class="module-header">
+  <a class="btn-back" href="../index.html">←</a>
+  <div class="module-header-info">
+    <span class="module-header-tag">Bloque 3 · Probabilidad</span>
+    <span class="module-header-title">Diagrama de Venn y Árbol</span>
+  </div>
+  <div id="mode-chip" class="mode-chip">Venn</div>
+</header>
+
+<div class="glow-blob"></div>
+
+<div class="app">
+<div class="page-content">
+
+  <!-- DIAGRAMA -->
+  <div class="diagram-card">
+    <div class="diagram-label">
+      <span class="diagram-label-text" id="diagram-title">Diagrama de Venn</span>
+    </div>
+    <svg id="svg-canvas" viewBox="0 0 360 240">
+      <defs id="defs"></defs>
+      <g id="venn-layer"></g>
+      <g id="tree-layer" style="display:none;"></g>
+    </svg>
+  </div>
+
+  <!-- DISPLAY OPERACIÓN -->
+  <div class="op-display">
+    <div>
+      <div class="op-display-label">Operación seleccionada</div>
+      <div class="op-display-value" id="op-display">—</div>
+    </div>
+    <div class="op-result-chip" id="op-result" style="display:none;">—</div>
+  </div>
+
+  <!-- SLIDERS -->
+  <div class="sliders-card">
+    <div class="sliders-title">Ajusta las probabilidades</div>
+    <div class="slider-row">
+      <span class="slider-name">P(A)</span>
+      <input type="range" id="ia" min="0.05" max="0.90" step="0.01" value="0.50" oninput="refresh()">
+      <span class="slider-val" id="va">0.50</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-name">P(B)</span>
+      <input type="range" id="ib" min="0.05" max="0.90" step="0.01" value="0.50" oninput="refresh()">
+      <span class="slider-val" id="vb">0.50</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-name">P(A∩B)</span>
+      <input type="range" id="ii" min="0.01" max="0.40" step="0.01" value="0.20" oninput="refresh()">
+      <span class="slider-val" id="vi">0.20</span>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="results-row" id="results"></div>
+
+  <!-- BOTONES OPERACIÓN -->
+  <div class="ops-card">
+
+    <span class="ops-group-label">Limpiar</span>
+    <div class="ops-grid one">
+      <button class="op-btn clear" onclick="selectOp(event,'NONE','—')">✕ Limpiar diagrama</button>
+    </div>
+
+    <span class="ops-group-label">Sucesos simples y complementarios</span>
+    <div class="ops-grid">
+      <button class="op-btn" onclick="selectOp(event,'A','A')">A</button>
+      <button class="op-btn" onclick="selectOp(event,'B','B')">B</button>
+      <button class="op-btn" onclick="selectOp(event,'NA','<span class=overline>A</span>')"><span class="overline">Ā</span></button>
+      <button class="op-btn" onclick="selectOp(event,'NB','<span class=overline>B</span>')"><span class="overline">B̄</span></button>
+    </div>
+
+    <span class="ops-group-label">Operaciones entre sucesos</span>
+    <div class="ops-grid">
+      <button class="op-btn" onclick="selectOp(event,'UNION','A ∪ B')">A∪B</button>
+      <button class="op-btn" onclick="selectOp(event,'INTER','A ∩ B')">A∩B</button>
+      <button class="op-btn" onclick="selectOp(event,'DIFF_AB','A − B')">A−B</button>
+      <button class="op-btn" onclick="selectOp(event,'DIFF_BA','B − A')">B−A</button>
+    </div>
+
+    <span class="ops-group-label">Probabilidad condicionada</span>
+    <div class="ops-grid two">
+      <button class="op-btn" onclick="selectOp(event,'COND_AB','P(A | B)')">P(A|B)</button>
+      <button class="op-btn" onclick="selectOp(event,'COND_BA','P(B | A)')">P(B|A)</button>
+    </div>
+
+    <span class="ops-group-label">Leyes de De Morgan</span>
+    <div class="ops-grid two">
+      <button class="op-btn" onclick="selectOp(event,'M1','<span class=overline>A∪B</span> = <span class=overline>A</span>∩<span class=overline>B</span>')">
+        <span class="overline">A∪B</span>&nbsp;=&nbsp;<span class="overline">A</span>∩<span class="overline">B</span>
+      </button>
+      <button class="op-btn" onclick="selectOp(event,'M2','<span class=overline>A∩B</span> = <span class=overline>A</span>∪<span class=overline>B</span>')">
+        <span class="overline">A∩B</span>&nbsp;=&nbsp;<span class="overline">A</span>∪<span class="overline">B</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- FÓRMULA -->
+  <div class="formula-card">
+    <div class="formula-label">Fórmula aplicada</div>
+    <div class="formula-text" id="formula-display">Selecciona una operación para ver la fórmula.</div>
+  </div>
+
+  <!-- INDEPENDENCIA -->
+  <div class="indep-card">
+    <strong>Sucesos independientes:</strong> A y B son independientes si y solo si:
+    <span class="indep-formula">P(A ∩ B) = P(A) · P(B)</span>
+  </div>
+
+  <div class="author-note">
+    <span>Gabriel</span>
+    <div class="author-dot"></div>
+    <span>CC BY-NC-SA 4.0</span>
+    <div class="author-dot"></div>
+    <span>MatEBAUticas 2026</span>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ─────────────────────────────────────
+//  ESTADO Y FÓRMULAS
+// ─────────────────────────────────────
+let currentMode = 'NONE';
+
+const FORMULAS = {
+  'NONE':    'Selecciona una operación para ver la fórmula.',
+  'A':       'P(A) : probabilidad del suceso A.',
+  'B':       'P(B) : probabilidad del suceso B.',
+  'NA':      'P(Ā) = 1 − P(A)',
+  'NB':      'P(B̄) = 1 − P(B)',
+  'UNION':   'P(A ∪ B) = P(A) + P(B) − P(A ∩ B)',
+  'INTER':   'P(A ∩ B) : zona de intersección entre A y B.',
+  'DIFF_AB': 'P(A − B) = P(A) − P(A ∩ B)',
+  'DIFF_BA': 'P(B − A) = P(B) − P(A ∩ B)',
+  'COND_AB': 'P(A | B) = P(A ∩ B) / P(B)',
+  'COND_BA': 'P(B | A) = P(A ∩ B) / P(A)',
+  'M1':      'P(Ā ∩ B̄) = 1 − P(A ∪ B)',
+  'M2':      'P(Ā ∪ B̄) = 1 − P(A ∩ B)',
+};
+
+// ─────────────────────────────────────
+//  CONTROLADOR PRINCIPAL
+// ─────────────────────────────────────
+function selectOp(e, mode, label) {
+  currentMode = mode;
+
+  document.getElementById('op-display').innerHTML = label;
+  document.getElementById('formula-display').textContent = FORMULAS[mode] || '—';
+
+  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+  if (e && e.currentTarget) e.currentTarget.classList.add('active');
+
+  const isTree = mode.startsWith('COND');
+  const chip = document.getElementById('mode-chip');
+  chip.textContent = isTree ? 'Árbol' : 'Venn';
+  chip.className = 'mode-chip' + (isTree ? ' tree' : '');
+  document.getElementById('diagram-title').textContent = isTree ? 'Árbol de probabilidad' : 'Diagrama de Venn';
+
+  refresh();
+}
+
+function refresh() {
+  const pA = parseFloat(document.getElementById('ia').value);
+  const pB = parseFloat(document.getElementById('ib').value);
+  let   pI = parseFloat(document.getElementById('ii').value);
+
+  const maxI = +(Math.min(pA, pB) - 0.01).toFixed(2);
+  document.getElementById('ii').max = maxI;
+  if (pI > maxI) { pI = maxI; document.getElementById('ii').value = pI; }
+
+  document.getElementById('va').textContent = pA.toFixed(2);
+  document.getElementById('vb').textContent = pB.toFixed(2);
+  document.getElementById('vi').textContent = pI.toFixed(2);
+
+  const isTree = currentMode.startsWith('COND');
+  document.getElementById('venn-layer').style.display = isTree ? 'none' : 'block';
+  document.getElementById('tree-layer').style.display = isTree ? 'block' : 'none';
+
+  if (isTree) renderTree(pA, pB, pI);
+  else        renderVenn(pA, pB, pI);
+
+  renderResults(pA, pB, pI);
+}
+
+// ─────────────────────────────────────
+//  RESULTADOS
+// ─────────────────────────────────────
+function renderResults(pA, pB, pI) {
+  const m = currentMode;
+  let computed = null, computedLabel = '';
+
+  if      (m === 'UNION')   { computed = pA+pB-pI;  computedLabel = 'P(A∪B)'; }
+  else if (m === 'INTER')   { computed = pI;         computedLabel = 'P(A∩B)'; }
+  else if (m === 'DIFF_AB') { computed = pA-pI;      computedLabel = 'P(A−B)'; }
+  else if (m === 'DIFF_BA') { computed = pB-pI;      computedLabel = 'P(B−A)'; }
+  else if (m === 'NA')      { computed = 1-pA;       computedLabel = 'P(Ā)'; }
+  else if (m === 'NB')      { computed = 1-pB;       computedLabel = 'P(B̄)'; }
+  else if (m === 'COND_AB') { computed = pI/pB;      computedLabel = 'P(A|B)'; }
+  else if (m === 'COND_BA') { computed = pI/pA;      computedLabel = 'P(B|A)'; }
+  else if (m === 'M1')      { computed = 1-(pA+pB-pI); computedLabel = 'P(Ā∩B̄)'; }
+  else if (m === 'M2')      { computed = 1-pI;       computedLabel = 'P(Ā∪B̄)'; }
+
+  // actualizar chip resultado
+  const chip = document.getElementById('op-result');
+  if (computed !== null) {
+    chip.textContent = Math.max(0, computed).toFixed(2);
+    chip.style.display = 'block';
+  } else {
+    chip.style.display = 'none';
+  }
+
+  let cards = `
+    <div class="stat-mini"><span class="stat-mini-label">P(A)</span><span class="stat-mini-val">${pA.toFixed(2)}</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">P(B)</span><span class="stat-mini-val">${pB.toFixed(2)}</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">P(A∩B)</span><span class="stat-mini-val">${pI.toFixed(2)}</span></div>
+  `;
+  if (computed !== null) {
+    cards += `<div class="stat-mini highlight"><span class="stat-mini-label">${computedLabel}</span><span class="stat-mini-val">${Math.max(0,computed).toFixed(2)}</span></div>`;
+  } else {
+    cards += `<div class="stat-mini"><span class="stat-mini-label">Resultado</span><span class="stat-mini-val" style="color:var(--text-dim)">—</span></div>`;
+  }
+  document.getElementById('results').innerHTML = cards;
+}
+
+// ─────────────────────────────────────
+//  DIAGRAMA DE VENN
+// ─────────────────────────────────────
+function renderVenn(pA, pB, pI) {
+  const g    = document.getElementById('venn-layer');
+  const defs = document.getElementById('defs');
+  g.innerHTML = ''; defs.innerHTML = '';
+
+  const W = 360, H = 240, CY = 120;
+  const CXA = 130;
+  const rA  = Math.sqrt(pA) * 90;
+  const rB  = Math.sqrt(pB) * 90;
+  const overlap = pI / Math.min(pA, pB);
+  const CXB = CXA + (rA + rB) * (1 - overlap * 0.85);
+
+  addEl(g, 'rect', { width: W, height: H, fill: '#1e1e30' });
+
+  const univ = addEl(g, 'text', { x: 12, y: 20, fill: '#4a4a6a', 'font-size': 14, 'font-family': 'Georgia,serif' });
+  univ.textContent = 'Ω';
+
+  if (currentMode !== 'NONE') {
+    const mask = addEl(defs, 'mask', { id: 'vmask' });
+    const mBg  = addEl(mask, 'rect', { width: W, height: H, fill: 'black' });
+    const mCA  = () => addEl(mask, 'circle', { cx: CXA, cy: CY, r: rA, fill: 'white' });
+    const mCB  = () => addEl(mask, 'circle', { cx: CXB, cy: CY, r: rB, fill: 'white' });
+
+    let fillColor = '#4a9eff';
+
+    switch (currentMode) {
+      case 'A':   mCA(); break;
+      case 'B':   mCB(); fillColor = '#a78bfa'; break;
+      case 'NA':
+        mBg.setAttribute('fill','white'); mCA().setAttribute('fill','black');
+        fillColor = '#b8ff3c'; break;
+      case 'NB':
+        mBg.setAttribute('fill','white'); mCB().setAttribute('fill','black');
+        fillColor = '#b8ff3c'; break;
+      case 'UNION': mCA(); mCB(); break;
+      case 'INTER': {
+        const cp = addEl(defs,'clipPath',{ id:'cpB' });
+        addEl(cp,'circle',{ cx:CXB, cy:CY, r:rB });
+        const ia = mCA(); ia.setAttribute('clip-path','url(#cpB)');
+        fillColor = '#b8ff3c'; break;
+      }
+      case 'DIFF_AB':
+        mCA(); addEl(mask,'circle',{ cx:CXB, cy:CY, r:rB, fill:'black' });
+        break;
+      case 'DIFF_BA':
+        mCB(); addEl(mask,'circle',{ cx:CXA, cy:CY, r:rA, fill:'black' });
+        fillColor = '#a78bfa'; break;
+      case 'M1':
+        mBg.setAttribute('fill','white');
+        mCA().setAttribute('fill','black'); mCB().setAttribute('fill','black');
+        fillColor = '#b8ff3c'; break;
+      case 'M2': {
+        mBg.setAttribute('fill','white');
+        const cp2 = addEl(defs,'clipPath',{ id:'cpB2' });
+        addEl(cp2,'circle',{ cx:CXB, cy:CY, r:rB });
+        const ia2 = mCA(); ia2.setAttribute('fill','black'); ia2.setAttribute('clip-path','url(#cpB2)');
+        fillColor = '#b8ff3c'; break;
+      }
+    }
+    addEl(g,'rect',{ width:W, height:H, fill:fillColor, mask:'url(#vmask)', opacity:0.3 });
+  }
+
+  addEl(g,'circle',{ cx:CXA, cy:CY, r:rA, fill:'none', stroke:'#4a9eff', 'stroke-width':2, opacity:0.8 });
+  addEl(g,'circle',{ cx:CXB, cy:CY, r:rB, fill:'none', stroke:'#a78bfa', 'stroke-width':2, opacity:0.8 });
+
+  const lA = addEl(g,'text',{ x:CXA - rA*0.55, y:CY - rA*0.62, fill:'#4a9eff', 'font-size':18, 'font-weight':700, 'font-family':'Georgia,serif' });
+  lA.textContent = 'A';
+  const lB = addEl(g,'text',{ x:CXB + rB*0.42, y:CY - rB*0.62, fill:'#a78bfa', 'font-size':18, 'font-weight':700, 'font-family':'Georgia,serif' });
+  lB.textContent = 'B';
+}
+
+// ─────────────────────────────────────
+//  ÁRBOL DE PROBABILIDAD
+// ─────────────────────────────────────
+function renderTree(pA, pB, pI) {
+  const g = document.getElementById('tree-layer');
+  g.innerHTML = '';
+  addEl(g,'rect',{ width:360, height:240, fill:'#1e1e30' });
+
+  const isBA = currentMode === 'COND_BA';
+  const pFirst    = isBA ? pA : pB;
+  const pNotFirst = 1 - pFirst;
+  const pCond     = isBA ? (pI/pA) : (pI/pB);
+  const pNotCond  = 1 - pCond;
+  const pA_ = 1-pA, pB_ = 1-pB;
+  const pCondComp = isBA ? (pB-pI)/Math.max(pA_,0.01) : (pA-pI)/Math.max(pB_,0.01);
+  const pCC = Math.min(Math.max(pCondComp,0),1);
+
+  const lF  = isBA ? 'A'  : 'B';
+  const lF_ = isBA ? 'Ā'  : 'B̄';
+  const lS  = isBA ? 'B'  : 'A';
+  const lS_ = isBA ? 'B̄'  : 'Ā';
+
+  const pJ1 = pI, pJ2 = isBA ? pA-pI : pB-pI;
+  const pJ3 = isBA ? pB-pI : pA-pI, pJ4 = 1-pA-pB+pI;
+
+  const x0=28, x1=130, x2=270;
+  const y1t=72, y1b=168, y2tt=36, y2tb=108, y2bt=132, y2bb=204;
+
+  const ACTIVE = isBA ? '#4a9eff' : '#a78bfa';
+  const GRAY   = '#3a3a5a';
+
+  line(g,x0,120,x1,y1t,ACTIVE,2.5);
+  line(g,x0,120,x1,y1b,GRAY,1.5);
+  line(g,x1,y1t,x2,y2tt,ACTIVE,2.5);
+  line(g,x1,y1t,x2,y2tb,GRAY,1.5);
+  line(g,x1,y1b,x2,y2bt,GRAY,1.5);
+  line(g,x1,y1b,x2,y2bb,GRAY,1.5);
+
+  dot(g,x0,120,GRAY);
+  dot(g,x1,y1t,ACTIVE);
+  dot(g,x1,y1b,GRAY);
+
+  branchLabel(g,x0,x1,120,y1t,`P(${lF})=${pFirst.toFixed(2)}`,ACTIVE,true);
+  branchLabel(g,x0,x1,120,y1b,`P(${lF_})=${pNotFirst.toFixed(2)}`,GRAY,false);
+  branchLabel(g,x1,x2,y1t,y2tt,`P(${lS}|${lF})=${pCond.toFixed(2)}`,ACTIVE,true);
+  branchLabel(g,x1,x2,y1t,y2tb,`P(${lS_}|${lF})=${pNotCond.toFixed(2)}`,GRAY,false);
+  branchLabel(g,x1,x2,y1b,y2bt,`P(${lS}|${lF_})=${pCC.toFixed(2)}`,GRAY,false);
+  branchLabel(g,x1,x2,y1b,y2bb,`P(${lS_}|${lF_})=${(1-pCC).toFixed(2)}`,GRAY,false);
+
+  endLabel(g,x2,y2tt,`P(${lF}∩${lS})=${Math.max(0,pJ1).toFixed(2)}`,ACTIVE);
+  endLabel(g,x2,y2tb,`P(${lF}∩${lS_})=${Math.max(0,pJ2).toFixed(2)}`,GRAY);
+  endLabel(g,x2,y2bt,`P(${lF_}∩${lS})=${Math.max(0,pJ3).toFixed(2)}`,GRAY);
+  endLabel(g,x2,y2bb,`P(${lF_}∩${lS_})=${Math.max(0,pJ4).toFixed(2)}`,GRAY);
+}
+
+// ─────────────────────────────────────
+//  HELPERS SVG
+// ─────────────────────────────────────
+function addEl(parent, tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  parent.appendChild(el);
+  return el;
+}
+
+function line(g,x1,y1,x2,y2,color,width) {
+  addEl(g,'line',{x1,y1,x2,y2,stroke:color,'stroke-width':width,'stroke-linecap':'round'});
+}
+
+function dot(g,cx,cy,color) {
+  addEl(g,'circle',{cx,cy,r:5,fill:color});
+}
+
+function branchLabel(g,x1,x2,y1,y2,txt,color,bold) {
+  const t = addEl(g,'text',{
+    x:(x1+x2)/2, y:(y1+y2)/2 - 5,
+    fill:color, 'font-size':9.5,
+    'font-family':'Space Grotesk,sans-serif',
+    'font-weight':bold?700:400,
+    'text-anchor':'middle'
+  });
+  t.textContent = txt;
+}
+
+function endLabel(g,x,y,txt,color) {
+  const t = addEl(g,'text',{
+    x:x+7, y:y+4,
+    fill:color, 'font-size':9,
+    'font-family':'Space Grotesk,sans-serif',
+    'font-weight':600
+  });
+  t.textContent = txt;
+}
+
+// ─────────────────────────────────────
+//  INICIO
+// ─────────────────────────────────────
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cálculo de Parámetros · MatEBAUticas</title>
+<link rel="stylesheet" href="../assets/style.css">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
+    options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+/* ─────────────────────────────────────────
+   Estilos exclusivos del módulo 2.3
+   ───────────────────────────────────────── */
+
+.page-content {
+  padding: 20px 18px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeUp 0.4s ease both;
+}
+
+/* ── NAVEGACIÓN DE BLOQUES ── */
+.blocks-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.blocks-nav::-webkit-scrollbar { display: none; }
+
+.block-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.block-dot.done {
+  background: var(--lime-dim);
+  border-color: rgba(184,255,60,0.4);
+  color: var(--lime);
+}
+
+.block-dot.current {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--bg);
+}
+
+/* ── ENUNCIADO ── */
+.enunciado-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--lime);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+
+.enunciado-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--lime);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.enunciado-text {
+  font-family: var(--font-title);
+  font-size: 0.97rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* ── BARRA DE PROGRESO ── */
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--lime);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.progress-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── TARJETA DE PREGUNTA ── */
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  animation: fadeUp 0.3s ease both;
+}
+
+.step-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.question-text {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+
+/* ── OPCIONES ── */
+.opts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opt-btn {
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+}
+
+.opt-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.opt-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.opt-btn:disabled { opacity: 0.55; cursor: default; }
+
+.opt-btn.correct {
+  border-color: rgba(184,255,60,0.4);
+  background: var(--lime-dim);
+  color: var(--lime);
+}
+
+.opt-btn.correct .opt-letter {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--bg);
+}
+
+.opt-btn.wrong {
+  border-color: rgba(255,90,90,0.3);
+  background: rgba(255,90,90,0.06);
+  color: #ff5a5a;
+}
+
+.opt-btn.wrong .opt-letter {
+  border-color: rgba(255,90,90,0.4);
+  color: #ff5a5a;
+}
+
+/* ── FEEDBACK ── */
+.feedback {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: none;
+}
+
+.feedback.correct {
+  background: var(--lime-dim);
+  color: var(--lime);
+  border: 1px solid rgba(184,255,60,0.2);
+}
+
+.feedback.wrong {
+  background: rgba(255,90,90,0.08);
+  color: #ff5a5a;
+  border: 1px solid rgba(255,90,90,0.2);
+}
+
+/* ── BOTÓN SIGUIENTE ── */
+.btn-next {
+  display: none;
+  margin-top: 14px;
+  min-height: 52px;
+  width: 100%;
+  background: var(--lime);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: -0.01em;
+}
+
+.btn-next:active { opacity: 0.85; }
+
+/* ── PANEL DE DESARROLLO ── */
+.dev-panel {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.dev-panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-panel-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dev-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  animation: pulse 2s infinite;
+}
+
+.dev-dot.active {
+  background: var(--lime);
+  box-shadow: 0 0 6px var(--lime-glow);
+}
+
+.dev-entries {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.dev-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.dev-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--lime);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--text-soft);
+  animation: fadeUp 0.3s ease both;
+}
+
+.dev-entry b { color: var(--text); font-weight: 600; }
+
+/* ── PANTALLA COMPLETADO ── */
+.completed-screen {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.completed-medal {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.completed-title {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.completed-result {
+  display: inline-block;
+  background: var(--lime-dim);
+  border: 1px solid rgba(184,255,60,0.25);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--lime);
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+
+.completed-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── GRÁFICA ── */
+.graph-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.graph-title-bar {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 220px;
+}
+</style>
+</head>
+<body>
+
+<!-- CABECERA FIJA -->
+<header class="module-header">
+  <a class="btn-back" href="../index.html">←</a>
+  <div class="module-header-info">
+    <span class="module-header-tag">Bloque 2 · Análisis</span>
+    <span class="module-header-title">Cálculo de Parámetros</span>
+  </div>
+  <div id="block-badge" class="mode-chip" style="background:var(--lime-dim);color:var(--lime);border-color:rgba(184,255,60,0.25);">B 1/3</div>
+</header>
+
+<div class="glow-blob"></div>
+
+<div class="app">
+<div class="page-content">
+
+  <!-- NAVEGACIÓN DE BLOQUES -->
+  <nav class="blocks-nav" id="blocks-nav"></nav>
+
+  <!-- ENUNCIADO -->
+  <div class="enunciado-card">
+    <span class="enunciado-tag">Enunciado</span>
+    <div class="enunciado-text" id="enunciado-text"></div>
+  </div>
+
+  <!-- BARRA DE PROGRESO -->
+  <div class="progress-bar-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">Paso 1 de 5</div>
+  </div>
+
+  <!-- ÁREA DE PREGUNTA -->
+  <div id="question-area"></div>
+
+  <!-- PANEL DE DESARROLLO -->
+  <div class="dev-panel">
+    <div class="dev-panel-header">
+      <div class="dev-dot" id="dev-dot"></div>
+      <span class="dev-panel-title">Desarrollo paso a paso</span>
+    </div>
+    <div class="dev-entries" id="dev-entries">
+      <div class="dev-empty">Responde correctamente para ver el desarrollo.</div>
+    </div>
+  </div>
+
+  <div class="author-note">
+    <span>Gabriel</span>
+    <div class="author-dot"></div>
+    <span>CC BY-NC-SA 4.0</span>
+    <div class="author-dot"></div>
+    <span>MatEBAUticas 2026</span>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATOS
+// ─────────────────────────────────────────────
+const levels = [
+  {
+    title: "Función Racional",
+    type: "Racional",
+    enunciado: "Sea $f(x) = \\dfrac{ax^2 + b}{x}$. Halla los valores de $a$ y $b$ sabiendo que la gráfica pasa por el punto $P(1,\\, 4)$ y tiene un extremo relativo en $x = 2$.",
+    params: { a: 0.8, b: 3.2 },
+    draw: (ctx, W, H) => {
+      drawAxes(ctx, W, H, 32);
+      const s = 32;
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "#b8ff3c";
+      const f = x => (0.8*x*x + 3.2)/x;
+      for (let branch of [[-9,-0.5],[0.5,9]]) {
+        ctx.beginPath(); let first = true;
+        for (let xi = branch[0]; xi <= branch[1]; xi += 0.08) {
+          const yi = f(xi);
+          if (Math.abs(yi) > 12) { first = true; continue; }
+          const px = W/2+xi*s, py = H/2-yi*s;
+          first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false;
+        }
+        ctx.stroke();
+      }
+      markPoint(ctx, W/2+1*s, H/2-4*s, "P(1,4)", "#4a9eff");
+      markPoint(ctx, W/2+2*s, H/2-f(2)*s, "Ext.(2,"+f(2).toFixed(1)+")", "#a78bfa");
+    },
+    steps: [
+      { q:"Paso 1 — Si la gráfica pasa por $P(1, 4)$, ¿qué condición se establece?", opts:["$f(1) = 4$","$f'(1) = 4$","$f(4) = 1$"], ans:0, dev:"<b>Condición de paso por un punto:</b><br>Que la curva pase por $(1, 4)$ significa que al sustituir $x=1$ en la función, el resultado es $4$:<br>$$f(1) = 4$$" },
+      { q:"Paso 2 — Al sustituir $x = 1$ en $f(x)$, ¿qué ecuación obtienes?", opts:["$a + b = 1$","$a + b = 4$","$a - b = 4$"], ans:1, dev:"<b>Primera ecuación:</b><br>$$\\frac{a(1)^2 + b}{1} = 4 \\implies \\boxed{a + b = 4}$$" },
+      { q:"Paso 3 — Un extremo relativo en $x = 2$ implica…", opts:["$f(2) = 0$","$f'(2) = 0$","$f''(2) = 0$"], ans:1, dev:"<b>Condición de extremo relativo:</b><br>En un máximo o mínimo local, la tangente es horizontal:<br>$$f'(2) = 0$$" },
+      { q:"Paso 4 — Aplica la regla del cociente. ¿Cuál es el numerador de $f'(x)$?", opts:["$2ax$","$ax^2 + b$","$ax^2 - b$"], ans:2, dev:"<b>Regla del cociente:</b><br>$$f'(x) = \\frac{(2ax)\\cdot x - (ax^2+b)\\cdot 1}{x^2} = \\frac{ax^2 - b}{x^2}$$" },
+      { q:"Paso 5 — Con las ecuaciones $a+b=4$ y $4a - b = 0$, ¿cuál es la solución?", opts:["$a = 1,\\; b = 3$","$a = 0{,}8,\\; b = 3{,}2$","$a = 2,\\; b = 2$"], ans:1, dev:"<b>Resolución del sistema:</b><br>De $4a - b = 0 \\Rightarrow b = 4a$. Sustituyendo:<br>$a + 4a = 4 \\Rightarrow 5a = 4 \\Rightarrow a = 0{,}8$<br>$b = 4(0{,}8) = 3{,}2$<br>$$\\boxed{a = 0{,}8 \\;\\;\\; b = 3{,}2}$$" }
+    ]
+  },
+  {
+    title: "Función Polinómica",
+    type: "Polinómica",
+    enunciado: "Dada $f(x) = x^3 + ax^2 + bx$, halla $a$ y $b$ sabiendo que $x = 1$ es un punto de inflexión y que $x = 2$ es un mínimo relativo.",
+    params: { a: -3, b: 0 },
+    draw: (ctx, W, H) => {
+      drawAxes(ctx, W, H, 36);
+      const s = 36;
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "#b8ff3c";
+      const f = x => x*x*x - 3*x*x;
+      ctx.beginPath(); let first = true;
+      for (let xi = -1.5; xi <= 3.5; xi += 0.06) {
+        const yi = f(xi);
+        if (Math.abs(yi) > 8) { first = true; continue; }
+        const px = W/2+xi*s, py = H/2-yi*s;
+        first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false;
+      }
+      ctx.stroke();
+      markPoint(ctx, W/2+1*s, H/2-f(1)*s, "P.I.(1,"+f(1).toFixed(0)+")", "#ff5a5a");
+      markPoint(ctx, W/2+2*s, H/2-f(2)*s, "Mín.(2,"+f(2).toFixed(0)+")", "#4a9eff");
+    },
+    steps: [
+      { q:"Paso 1 — ¿Qué condición matemática define un punto de inflexión en $x=1$?", opts:["$f'(1) = 0$","$f''(1) = 0$","$f(1) = 0$"], ans:1, dev:"<b>Definición de punto de inflexión:</b><br>Es el punto donde la curvatura cambia de signo. La condición necesaria es:<br>$$f''(1) = 0$$" },
+      { q:"Paso 2 — ¿Cómo queda $f''(x)$ al derivar dos veces?", opts:["$6x + 2a$","$3x^2 + 2ax + b$","$6x + a$"], ans:0, dev:"<b>Derivadas sucesivas:</b><br>$f'(x) = 3x^2 + 2ax + b$<br>$$f''(x) = 6x + 2a$$" },
+      { q:"Paso 3 — Aplicando $f''(1) = 0$, ¿cuánto vale $a$?", opts:["$a = 3$","$a = -3$","$a = -6$"], ans:1, dev:"<b>Cálculo de $a$:</b><br>$$6(1) + 2a = 0 \\implies 2a = -6 \\implies \\boxed{a = -3}$$" },
+      { q:"Paso 4 — Un mínimo relativo en $x = 2$ requiere…", opts:["$f'(2) = 0$","$f(2) = 0$","$f''(2) = 0$"], ans:0, dev:"<b>Condición de mínimo relativo:</b><br>La tangente es horizontal en el mínimo:<br>$$f'(2) = 0$$" },
+      { q:"Paso 5 — Con $a = -3$, aplica $f'(2) = 0$ para hallar $b$:", opts:["$b = 12$","$b = 0$","$b = -12$"], ans:1, dev:"<b>Cálculo de $b$:</b><br>$f'(x) = 3x^2 - 6x + b$<br>$f'(2) = 12 - 12 + b = 0$<br>$$\\boxed{b = 0}$$<br>Se comprueba: $f''(2) = 6 > 0$ ✓ es mínimo." }
+    ]
+  },
+  {
+    title: "Función a Trozos",
+    type: "A trozos",
+    enunciado: "Dada la función definida a trozos: $$f(x) = \\begin{cases} ax^2 + 1 & \\text{si } x \\le 1 \\\\ 3x + b & \\text{si } x > 1 \\end{cases}$$ Halla $a$ y $b$ para que $f$ sea derivable en $x = 1$.",
+    params: { a: 1.5, b: -0.5 },
+    draw: (ctx, W, H) => {
+      drawAxes(ctx, W, H, 40);
+      const s = 40;
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "#4a9eff";
+      ctx.beginPath(); let first = true;
+      for (let xi = -2; xi <= 1; xi += 0.05) {
+        const yi = 1.5*xi*xi + 1;
+        const px = W/2+xi*s, py = H/2-yi*s;
+        first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false;
+      }
+      ctx.stroke();
+      ctx.strokeStyle = "#a78bfa"; ctx.beginPath(); first = true;
+      for (let xi = 1; xi <= 3; xi += 0.05) {
+        const yi = 3*xi - 0.5;
+        const px = W/2+xi*s, py = H/2-yi*s;
+        first ? ctx.moveTo(px,py) : ctx.lineTo(px,py); first = false;
+      }
+      ctx.stroke();
+      markPoint(ctx, W/2+1*s, H/2-2.5*s, "Unión(1,2.5)", "#b8ff3c");
+    },
+    steps: [
+      { q:"Paso 1 — Antes de exigir derivabilidad, ¿qué condición previa es imprescindible?", opts:["Simetría respecto al eje Y","Continuidad en $x = 1$","Periodicidad"], ans:1, dev:"<b>Teorema fundamental:</b><br>Toda función derivable es continua. Por tanto, primero imponemos:<br>$$\\lim_{x \\to 1^-} f(x) = \\lim_{x \\to 1^+} f(x) = f(1)$$" },
+      { q:"Paso 2 — Igualando los límites laterales en $x = 1$, ¿qué ecuación se obtiene?", opts:["$a + 1 = 3 + b$","$a = 3b$","$a + 1 = b$"], ans:0, dev:"<b>Condición de continuidad:</b><br>$a(1)^2 + 1 = 3(1) + b$<br>$$a + 1 = 3 + b \\implies \\boxed{a - b = 2}$$" },
+      { q:"Paso 3 — ¿Cuál es la derivada de la primera rama, $f'(x)$ para $x < 1$?", opts:["$a$","$2a$","$2ax$"], ans:2, dev:"<b>Derivación del primer tramo:</b><br>Para $x < 1$: $f(x) = ax^2 + 1$<br>$$f'(x) = 2ax$$" },
+      { q:"Paso 4 — Igualando derivadas laterales en $x = 1$, ¿qué ecuación aparece?", opts:["$2a = 3$","$a = 3$","$2a = b$"], ans:0, dev:"<b>Condición de derivabilidad:</b><br>$f'(1^-) = 2a$ y $f'(1^+) = 3$<br>$$2a = 3 \\implies \\boxed{a = 1{,}5}$$" },
+      { q:"Paso 5 — Sustituyendo $a = 1{,}5$ en la ecuación de continuidad, ¿cuánto vale $b$?", opts:["$b = 0{,}5$","$b = 2$","$b = -0{,}5$"], ans:2, dev:"<b>Cálculo de $b$:</b><br>$1{,}5 - b = 2 \\implies -b = 0{,}5$<br>$$\\boxed{b = -0{,}5}$$<br>Comprobación: $f(1^-) = 2{,}5$ y $f(1^+) = 2{,}5$ ✓" }
+    ]
+  }
+];
+
+// ─────────────────────────────────────────────
+//  ESTADO
+// ─────────────────────────────────────────────
+let currentLevel = 0;
+let currentStep  = 0;
+let completed    = new Set();
+
+// ─────────────────────────────────────────────
+//  HELPERS GRÁFICA
+// ─────────────────────────────────────────────
+function drawAxes(ctx, W, H, s) {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#1e1e30';
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = '#2a2a40'; ctx.lineWidth = 1;
+  for (let xi = -Math.ceil(W/2/s); xi <= Math.ceil(W/2/s); xi++) {
+    ctx.beginPath(); ctx.moveTo(W/2+xi*s,0); ctx.lineTo(W/2+xi*s,H); ctx.stroke();
+  }
+  for (let yi = -Math.ceil(H/2/s); yi <= Math.ceil(H/2/s); yi++) {
+    ctx.beginPath(); ctx.moveTo(0,H/2+yi*s); ctx.lineTo(W,H/2+yi*s); ctx.stroke();
+  }
+  ctx.strokeStyle = '#4a4a6a'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+  ctx.fillStyle = '#4a4a6a'; ctx.font = '10px Space Grotesk,sans-serif'; ctx.textAlign = 'center';
+  for (let xi = -4; xi <= 4; xi++) {
+    if (xi===0) continue;
+    ctx.fillText(xi, W/2+xi*s, H/2+14);
+  }
+  ctx.textAlign = 'right';
+  for (let yi = -3; yi <= 3; yi++) {
+    if (yi===0) continue;
+    ctx.fillText(yi, W/2-5, H/2-yi*s+4);
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#7a7a9a';
+  ctx.fillText('x', W-8, H/2-8);
+  ctx.fillText('y', W/2+10, 12);
+}
+
+function markPoint(ctx, px, py, label, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
+  ctx.font = 'bold 9px Space Grotesk,sans-serif';
+  ctx.fillStyle = color; ctx.textAlign = 'left';
+  ctx.fillText(label, px+7, py-5);
+}
+
+// ─────────────────────────────────────────────
+//  UI
+// ─────────────────────────────────────────────
+function buildNav() {
+  const nav = document.getElementById('blocks-nav');
+  nav.innerHTML = '';
+  levels.forEach((lv, i) => {
+    const d = document.createElement('div');
+    d.className = 'block-dot' +
+      (completed.has(i) ? ' done' : '') +
+      (i === currentLevel ? ' current' : '');
+    d.title = lv.title;
+    d.textContent = i+1;
+    d.onclick = () => { if (completed.has(i) || i === currentLevel) jumpTo(i); };
+    nav.appendChild(d);
+  });
+  document.getElementById('block-badge').textContent = `B ${currentLevel+1}/${levels.length}`;
+}
+
+function jumpTo(i) {
+  currentLevel = i; currentStep = 0;
+  resetDev();
+  initLevel();
+}
+
+function initLevel() {
+  const lv = levels[currentLevel];
+  const enBox = document.getElementById('enunciado-text');
+  enBox.innerHTML = lv.enunciado;
+  if (window.MathJax) MathJax.typesetPromise([enBox]);
+  buildNav();
+  renderStep();
+}
+
+function resetDev() {
+  document.getElementById('dev-entries').innerHTML = '<div class="dev-empty">Responde correctamente para ver el desarrollo.</div>';
+  document.getElementById('dev-dot').classList.remove('active');
+}
+
+function renderStep() {
+  const lv    = levels[currentLevel];
+  const step  = lv.steps[currentStep];
+  const total = lv.steps.length;
+
+  const pct = (currentStep / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Paso ${currentStep+1} de ${total}`;
+
+  const letters = ['A','B','C','D'];
+  const qa = document.getElementById('question-area');
+  qa.innerHTML = `
+    <div class="question-card">
+      <span class="step-tag">Paso ${currentStep+1} de ${total} — ${lv.type}</span>
+      <div class="question-text" id="qtext">${step.q}</div>
+      <div class="opts-list">
+        ${step.opts.map((o,i) => `
+          <button class="opt-btn" data-idx="${i}" onclick="check(${i})">
+            <div class="opt-letter">${letters[i]}</div>
+            <span>${o}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="btn-next" id="btn-next" onclick="advance()">
+        ${currentStep+1 < total ? 'Siguiente paso →' : 'Ver resultado final'}
+      </button>
+    </div>
+  `;
+  if (window.MathJax) MathJax.typesetPromise([qa]);
+}
+
+function check(idx) {
+  const step = levels[currentLevel].steps[currentStep];
+  const fb   = document.getElementById('fb');
+  const btns = document.querySelectorAll('.opt-btn');
+
+  if (idx === step.ans) {
+    btns.forEach((b,i) => {
+      b.disabled = true;
+      if (i === idx) b.classList.add('correct');
+    });
+    fb.textContent = '✓ Correcto.';
+    fb.className = 'feedback correct';
+    fb.style.display = 'block';
+    document.getElementById('btn-next').style.display = 'block';
+
+    // añadir al desarrollo
+    const entries = document.getElementById('dev-entries');
+    const prev = entries.querySelector('.dev-empty');
+    if (prev) entries.innerHTML = '';
+    const entry = document.createElement('div');
+    entry.className = 'dev-entry';
+    entry.innerHTML = step.dev;
+    entries.appendChild(entry);
+    document.getElementById('dev-dot').classList.add('active');
+    if (window.MathJax) MathJax.typesetPromise([entry]);
+    entries.scrollTop = entries.scrollHeight;
+
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[idx].disabled = true;
+    fb.textContent = 'Respuesta incorrecta. Inténtalo de nuevo.';
+    fb.className = 'feedback wrong';
+    fb.style.display = 'block';
+  }
+}
+
+function advance() {
+  currentStep++;
+  const lv = levels[currentLevel];
+  if (currentStep < lv.steps.length) {
+    renderStep();
+  } else {
+    completed.add(currentLevel);
+    buildNav();
+    showCompleted();
+  }
+}
+
+function showCompleted() {
+  const lv = levels[currentLevel];
+  const paramsText = Object.entries(lv.params).map(([k,v]) => `${k} = ${v}`).join('   ');
+  const hasNext = currentLevel < levels.length - 1;
+
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-label').textContent = '¡Completado!';
+
+  const qa = document.getElementById('question-area');
+  qa.innerHTML = `
+    <div class="completed-screen">
+      <span class="completed-medal">🎓</span>
+      <div class="completed-title">Bloque completado</div>
+      <div class="completed-result">${paramsText}</div>
+      <div class="graph-wrap">
+        <div class="graph-title-bar">Representación gráfica de f(x)</div>
+        <canvas id="graphCanvas" width="500" height="220"></canvas>
+      </div>
+      <div class="completed-actions" style="margin-top:16px">
+        ${hasNext
+          ? `<button class="btn-primary" onclick="nextLevel()">Siguiente bloque →</button>`
+          : `<button class="btn-primary" onclick="location.reload()">Reiniciar desde el inicio</button>`
+        }
+        <button class="btn-secondary" onclick="jumpTo(${currentLevel})">Repetir este bloque</button>
+      </div>
+    </div>
+  `;
+
+  if (window.MathJax) MathJax.typesetPromise([qa]).then(drawGraph);
+  else drawGraph();
+}
+
+function drawGraph() {
+  const canvas = document.getElementById('graphCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  levels[currentLevel].draw(ctx, canvas.width, canvas.height);
+}
+
+function nextLevel() {
+  currentLevel++; currentStep = 0;
+  resetDev();
+  initLevel();
+}
+
+// ─────────────────────────────────────────────
+//  INICIO
+// ─────────────────────────────────────────────
+window.onload = () => { buildNav(); initLevel(); };
+</script>
+</body>
+</html>
