@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Problemas de Probabilidad · MatEBAUticas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
+    options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg:         #0d0d14;
+  --bg2:        #13131f;
+  --bg3:        #1a1a2a;
+  --surface:    #1e1e30;
+  --border:     #2a2a40;
+  --lime:       #b8ff3c;
+  --lime-dim:   rgba(184,255,60,0.10);
+  --lime-glow:  rgba(184,255,60,0.22);
+  --text:       #e8e8f0;
+  --text-soft:  #7a7a9a;
+  --text-dim:   #4a4a6a;
+  --blue:       #4a9eff;
+  --blue-dim:   rgba(74,158,255,0.10);
+  --purple:     #a78bfa;
+  --purple-dim: rgba(167,139,250,0.10);
+  --teal:       #2dd4bf;
+  --orange:     #fb923c;
+  --red:        #ff5a5a;
+  --radius:     16px;
+  --radius-sm:  10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.6;
+}
+.glow-blob {
+  position: fixed; width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(184,255,60,0.05) 0%, transparent 70%);
+  top: -100px; right: -120px; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+.module-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,20,0.92); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+  padding: 0 18px; height: 56px; display: flex; align-items: center; gap: 14px;
+}
+.btn-back {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-soft); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; flex-shrink: 0; transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-back:active { background: var(--bg3); }
+.module-header-info { flex: 1; overflow: hidden; }
+.module-header-tag {
+  font-family: 'Syne Mono', monospace; font-size: 0.58rem; color: var(--purple);
+  letter-spacing: 0.1em; text-transform: uppercase; display: block;
+}
+.module-header-title {
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: var(--text); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; display: block;
+}
+.mode-chip {
+  font-family: 'Syne Mono', monospace; font-size: 0.62rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase;
+  background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.25);
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── TABS ── */
+.tabs-wrap {
+  padding: 14px 18px 12px; position: sticky; top: 56px; z-index: 90;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+.tabs-label {
+  font-family: 'Syne Mono', monospace; font-size: 0.58rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
+}
+.tabs-row { display: flex; gap: 6px; }
+.tab-btn {
+  flex: 1; height: 44px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--surface);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s; -webkit-tap-highlight-color: transparent;
+}
+.tab-btn:active { transform: scale(0.95); }
+.tab-num {
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+  color: var(--text-dim); letter-spacing: -0.02em;
+}
+.tab-btn.active { border-color: var(--purple); background: var(--purple-dim); }
+.tab-btn.active .tab-num { color: var(--purple); }
+.tab-btn.solved { border-color: rgba(184,255,60,0.35); background: var(--lime-dim); }
+.tab-btn.solved .tab-num { color: var(--lime); }
+.tab-btn.active.solved { border-color: var(--lime); }
+
+/* ── APP ── */
+.app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding-bottom: 48px; }
+.page-content {
+  padding: 20px 18px 0; display: flex; flex-direction: column; gap: 14px;
+  animation: fadeUp 0.3s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CABECERA PROBLEMA ── */
+.prob-header { display: flex; align-items: flex-start; gap: 12px; }
+.prob-num-badge {
+  font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800;
+  color: var(--purple); background: var(--purple-dim); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: var(--radius-sm); width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.prob-meta { flex: 1; }
+.prob-type-tag {
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; color: var(--purple);
+  letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 4px;
+}
+.prob-title {
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+  color: var(--text); letter-spacing: -0.01em; line-height: 1.3;
+}
+
+/* ── DATOS ── */
+.datos-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-left: 3px solid var(--purple); border-radius: var(--radius); padding: 16px 18px;
+}
+.datos-tag {
+  font-family: 'Syne Mono', monospace; font-size: 0.58rem; color: var(--purple);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; display: block;
+}
+.datos-list { display: flex; flex-direction: column; gap: 5px; }
+.dato-expr {
+  font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--lime);
+}
+
+/* ── BARRA DE ACCIONES ── */
+.actions-bar {
+  display: flex; gap: 8px; align-items: center; justify-content: flex-end;
+}
+
+/* ── BOTÓN PIZARRA (vistoso) ── */
+.btn-pizarra {
+  display: flex; align-items: center; gap: 7px;
+  background: linear-gradient(135deg, #1a0f35 0%, #2d1a5e 100%);
+  border: 1.5px solid var(--purple);
+  border-radius: var(--radius-sm); padding: 10px 16px; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 700;
+  color: var(--purple); transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 12px rgba(167,139,250,0.15);
+}
+.btn-pizarra:active { transform: scale(0.97); box-shadow: none; }
+.btn-pizarra:hover { background: linear-gradient(135deg, #221244 0%, #391f72 100%); box-shadow: 0 0 18px rgba(167,139,250,0.25); }
+.btn-pizarra svg { flex-shrink: 0; }
+.btn-pizarra-label { display: flex; flex-direction: column; line-height: 1.1; }
+.btn-pizarra-sub { font-size: 0.6rem; font-weight: 400; color: rgba(167,139,250,0.6); margin-top: 1px; }
+
+/* ── BOTÓN FORMULARIO ── */
+.btn-formula {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg3); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 600;
+  color: var(--text-soft); transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.btn-formula:active { background: var(--surface); }
+.btn-formula.open { border-color: var(--teal); color: var(--teal); background: var(--teal-dim, rgba(45,212,191,0.08)); }
+.teal-dim { --teal-dim: rgba(45,212,191,0.08); }
+
+/* ── FORMULARIO DESPLEGABLE ── */
+.formulario-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease;
+  border-radius: var(--radius);
+  border: 0px solid var(--border);
+}
+.formulario-panel.open {
+  max-height: 3000px;
+  border: 1px solid var(--teal);
+  overflow: visible;
+}
+.formulario-inner {
+  background: var(--bg2); border-radius: var(--radius);
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+}
+.form-sec-title {
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 4px; padding-top: 4px;
+}
+.form-card {
+  border-radius: 10px; padding: 11px 14px;
+  border: 1px solid var(--border);
+}
+.form-card.blue   { background: rgba(74,158,255,0.07);   border-left: 3px solid var(--blue);   }
+.form-card.teal   { background: rgba(45,212,191,0.07);   border-left: 3px solid var(--teal);   }
+.form-card.orange { background: rgba(251,146,60,0.07);   border-left: 3px solid var(--orange); }
+.form-card.purple { background: rgba(167,139,250,0.07);  border-left: 3px solid var(--purple); }
+.form-card.lime   { background: rgba(184,255,60,0.07);   border-left: 3px solid var(--lime);   }
+.form-name {
+  font-family: 'Syne', sans-serif; font-size: 0.76rem; font-weight: 800;
+  margin-bottom: 5px; letter-spacing: -0.01em;
+}
+.form-card.blue   .form-name { color: var(--blue);   }
+.form-card.teal   .form-name { color: var(--teal);   }
+.form-card.orange .form-name { color: var(--orange); }
+.form-card.purple .form-name { color: var(--purple); }
+.form-card.lime   .form-name { color: var(--lime);   }
+.form-expr { font-size: 0.82rem; line-height: 1.8; color: var(--text); overflow-x: auto; }
+.form-note { font-size: 0.72rem; color: var(--text-soft); line-height: 1.5; margin-top: 4px; }
+.form-note b { color: var(--text); font-weight: 600; }
+.form-link {
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 10px; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); text-decoration: none;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-soft);
+  transition: all 0.15s;
+}
+.form-link:active { background: var(--surface); }
+
+/* ── PIZARRA FULLSCREEN ── */
+.pizarra-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: #0a0a12; flex-direction: column;
+}
+.pizarra-overlay.open { display: flex; }
+
+.pizarra-topbar {
+  height: 52px; background: rgba(10,10,18,0.98);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; flex-shrink: 0; flex-wrap: wrap;
+}
+.pizarra-title {
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: var(--purple); margin-right: 4px;
+}
+.pizarra-controls { display: flex; gap: 7px; align-items: center; flex: 1; flex-wrap: wrap; }
+.btn-color {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.btn-color:active { transform: scale(0.85); }
+.btn-color.active { border-color: white; box-shadow: 0 0 6px rgba(255,255,255,0.4); }
+.btn-size {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 10px; font-family: 'Syne Mono', monospace; font-size: 0.68rem;
+  color: var(--text-soft); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  min-width: 34px; text-align: center;
+}
+.btn-size.active { background: var(--purple-dim); color: var(--purple); border-color: rgba(167,139,250,0.4); }
+.btn-borrar {
+  background: rgba(255,90,90,0.1); border: 1px solid rgba(255,90,90,0.3);
+  border-radius: var(--radius-sm); padding: 7px 13px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600;
+  color: var(--red); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  margin-left: auto;
+}
+.btn-borrar:active { opacity: 0.7; }
+.btn-cerrar-piz {
+  background: var(--purple); border: none;
+  border-radius: var(--radius-sm); padding: 7px 14px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700;
+  color: var(--bg); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+.btn-cerrar-piz:active { opacity: 0.85; }
+#pizarra-canvas {
+  flex: 1; display: block; width: 100%; height: 100%;
+  background: #0e0e1a; touch-action: none; cursor: crosshair;
+}
+
+/* ── APARTADOS ── */
+.apartados-wrap { display: flex; flex-direction: column; gap: 12px; }
+.apartado-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s;
+}
+.apartado-card.solved { border-color: rgba(184,255,60,0.25); }
+.apartado-head { padding: 14px 16px 10px; }
+.apartado-label {
+  font-family: 'Syne Mono', monospace; font-size: 0.58rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.apartado-label .check-icon { color: var(--lime); display: none; }
+.apartado-card.solved .apartado-label .check-icon { display: inline; }
+.apartado-q { font-size: 0.95rem; line-height: 1.6; color: var(--text); }
+.opts-list { padding: 0 12px 14px; display: flex; flex-direction: column; gap: 7px; }
+.opt-btn {
+  background: var(--bg3); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; cursor: pointer; text-align: left;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; color: var(--text-soft);
+  display: flex; align-items: center; gap: 10px; min-height: 52px;
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent; width: 100%;
+}
+.opt-btn:active:not(:disabled) { transform: scale(0.98); }
+.opt-btn:disabled { opacity: 0.55; cursor: default; }
+.opt-letter {
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne Mono', monospace; font-size: 0.62rem; font-weight: 700;
+  color: var(--text-dim); flex-shrink: 0; transition: all 0.15s;
+}
+.opt-btn.correct { border-color: rgba(184,255,60,0.4); background: var(--lime-dim); color: var(--lime); }
+.opt-btn.correct .opt-letter { background: var(--lime); border-color: var(--lime); color: var(--bg); }
+.opt-btn.wrong { border-color: rgba(255,90,90,0.3); background: rgba(255,90,90,0.06); color: var(--red); }
+.opt-btn.wrong .opt-letter { border-color: rgba(255,90,90,0.4); color: var(--red); }
+.feedback {
+  margin: 0 12px 10px; padding: 9px 13px; border-radius: var(--radius-sm);
+  font-size: 0.82rem; font-weight: 500; display: none;
+}
+.feedback.correct { background: var(--lime-dim); color: var(--lime); border: 1px solid rgba(184,255,60,0.2); }
+.feedback.wrong   { background: rgba(255,90,90,0.08); color: var(--red); border: 1px solid rgba(255,90,90,0.2); }
+
+/* ── DESARROLLO ── */
+.dev-panel {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.dev-panel-header {
+  padding: 11px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+}
+.dev-panel-title {
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.dev-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+.dev-dot.active { background: var(--lime); box-shadow: 0 0 6px var(--lime-glow); }
+.dev-entries {
+  padding: 8px; display: flex; flex-direction: column; gap: 6px; max-height: 600px; overflow-y: auto;
+}
+.dev-empty { padding: 22px 16px; text-align: center; font-size: 0.8rem; color: var(--text-dim); }
+.dev-entry {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--purple); border-radius: 8px;
+  padding: 12px 14px; font-size: 0.84rem; line-height: 1.7;
+  color: var(--text-soft); animation: fadeUp 0.3s ease both;
+}
+.dev-entry b { color: var(--text); font-weight: 600; }
+.dev-entry .hl { color: var(--lime); font-weight: 700; }
+.ctable { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 0.8rem; }
+.ctable td, .ctable th { padding: 6px 8px; border: 1px solid var(--border); text-align: center; }
+.ctable th { color: var(--lime); background: var(--lime-dim); font-weight: 700; }
+.ctable .hl-cell { color: var(--lime); font-weight: 700; }
+.ctable .row-head { color: var(--text-soft); font-weight: 600; text-align: left; }
+.ctable .dim { color: var(--text-dim); }
+.tree-svg-wrap {
+  background: #111120; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; margin: 10px 0 4px;
+}
+.tree-svg-wrap svg { display: block; width: 100%; }
+
+/* ── AUTOR ── */
+.author-note {
+  padding: 20px 18px 0; font-size: 0.7rem; color: var(--text-dim);
+  display: flex; align-items: center; gap: 8px;
+}
+.author-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border); }
+</style>
+</head>
+<body>
+<div class="glow-blob"></div>
+
+<header class="module-header">
+  <a class="btn-back" href="../index.html">←</a>
+  <div class="module-header-info">
+    <span class="module-header-tag">Bloque 3 · Probabilidad</span>
+    <span class="module-header-title">Problemas de Probabilidad</span>
+  </div>
+  <div class="mode-chip" id="header-chip">P 1/5</div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs-label">Selecciona un problema</div>
+  <div class="tabs-row" id="tabs-row"></div>
+</div>
+
+<!-- PIZARRA FULLSCREEN -->
+<div class="pizarra-overlay" id="pizarra-overlay">
+  <div class="pizarra-topbar">
+    <span class="pizarra-title">✏️ Pizarra</span>
+    <div class="pizarra-controls">
+      <button class="btn-color active" style="background:#e8e8f0" onclick="setColor('#e8e8f0',this)" title="Blanco"></button>
+      <button class="btn-color" style="background:#b8ff3c" onclick="setColor('#b8ff3c',this)" title="Lima"></button>
+      <button class="btn-color" style="background:#4a9eff" onclick="setColor('#4a9eff',this)" title="Azul"></button>
+      <button class="btn-color" style="background:#a78bfa" onclick="setColor('#a78bfa',this)" title="Púrpura"></button>
+      <button class="btn-size active" onclick="setSize(3,this)">S</button>
+      <button class="btn-size" onclick="setSize(5,this)">M</button>
+      <button class="btn-size" onclick="setSize(9,this)">G</button>
+    </div>
+    <button class="btn-borrar" onclick="clearCanvas()">Borrar</button>
+    <button class="btn-cerrar-piz" onclick="closePizarra()">Cerrar ✕</button>
+  </div>
+  <canvas id="pizarra-canvas"></canvas>
+</div>
+
+<div class="app">
+  <div class="page-content" id="page-content"></div>
+  <div class="author-note">
+    <span>Gabriel</span><div class="author-dot"></div>
+    <span>CC BY-NC-SA 4.0</span><div class="author-dot"></div>
+    <span>MatEBAUticas 2026</span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  SVG ÁRBOL
+// ═══════════════════════════════════════════
+function svgArbol(cfg){
+  const W=360,H=220,x0=18,x1=128,x2=288;
+  const y1t=68,y1b=152,y2tt=28,y2tb=108,y2bt=112,y2bb=192;
+  const LIME='#b8ff3c',DIM='#3a3a5a',SOFT='#7a7a9a';
+  function ln(xa,ya,xb,yb,col,w){return `<line x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;}
+  function dot(cx,cy,col){return `<circle cx="${cx}" cy="${cy}" r="4.5" fill="${col}"/>`;}
+  function lbl(xa,ya,xb,yb,txt,col,fw){const mx=(xa+xb)/2,my=(ya+yb)/2-5;return `<text x="${mx}" y="${my}" fill="${col}" font-size="9.2" font-family="Space Grotesk,sans-serif" font-weight="${fw||400}" text-anchor="middle">${txt}</text>`;}
+  function end(x,y,txt,col){return `<text x="${x+7}" y="${y+4}" fill="${col}" font-size="8.8" font-family="Space Grotesk,sans-serif" font-weight="600">${txt}</text>`;}
+  const b=cfg.branches;
+  return `<div class="tree-svg-wrap"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+<rect width="${W}" height="${H}" fill="#111120"/>
+${ln(x0,110,x1,y1t,LIME,2.5)}${ln(x0,110,x1,y1b,DIM,1.5)}
+${ln(x1,y1t,x2,y2tt,LIME,2.5)}${ln(x1,y1t,x2,y2tb,DIM,1.5)}
+${ln(x1,y1b,x2,y2bt,DIM,1.5)}${ln(x1,y1b,x2,y2bb,DIM,1.5)}
+${dot(x0,110,DIM)}${dot(x1,y1t,LIME)}${dot(x1,y1b,DIM)}
+${lbl(x0,110,x1,y1t,cfg.firstLabel+'='+cfg.firstP,LIME,700)}
+${lbl(x0,110,x1,y1b,cfg.notFirstLabel+'='+cfg.notFirstP,SOFT,400)}
+${lbl(x1,y1t,x2,y2tt,b[0].condLabel+'='+b[0].condP,LIME,700)}
+${lbl(x1,y1t,x2,y2tb,b[1].condLabel+'='+b[1].condP,SOFT,400)}
+${lbl(x1,y1b,x2,y2bt,b[2].condLabel+'='+b[2].condP,SOFT,400)}
+${lbl(x1,y1b,x2,y2bb,b[3].condLabel+'='+b[3].condP,SOFT,400)}
+${end(x2,y2tt,b[0].jointLabel+'='+b[0].jointP,LIME)}
+${end(x2,y2tb,b[1].jointLabel+'='+b[1].jointP,SOFT)}
+${end(x2,y2bt,b[2].jointLabel+'='+b[2].jointP,SOFT)}
+${end(x2,y2bb,b[3].jointLabel+'='+b[3].jointP,SOFT)}
+</svg></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  TABLA DE CONTINGENCIA
+// ═══════════════════════════════════════════
+function htmlTabla(rows){
+  let h='<table class="ctable">';
+  rows.forEach((r,ri)=>{
+    h+='<tr>';
+    r.forEach((c,ci)=>{
+      if(ri===0){h+=`<th>${c}</th>`;}
+      else if(ci===0){h+=`<td class="row-head">${c}</td>`;}
+      else if(c&&c.hl){h+=`<td class="hl-cell">${c.v}</td>`;}
+      else if(c&&c.dim){h+=`<td class="dim">${c.v}</td>`;}
+      else{h+=`<td>${c}</td>`;}
+    });
+    h+='</tr>';
+  });
+  return h+'</table>';
+}
+
+// ═══════════════════════════════════════════
+//  FORMULARIO INLINE (desplegable)
+// ═══════════════════════════════════════════
+function formularioHTML(){
+  return `<div class="formulario-inner" id="form-inner">
+    <div class="form-sec-title" style="color:var(--blue)">Complementario · Unión · Diferencia</div>
+    <div class="form-card blue">
+      <div class="form-name">Complementario</div>
+      <div class="form-expr" data-tex>$P(\\bar{A}) = 1 - P(A)$</div>
+    </div>
+    <div class="form-card blue">
+      <div class="form-name">Unión</div>
+      <div class="form-expr" data-tex>$P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$</div>
+      <div class="form-note">Al menos uno de los dos.</div>
+    </div>
+    <div class="form-card blue">
+      <div class="form-name">Diferencia</div>
+      <div class="form-expr" data-tex>$P(A-B) = P(A) - P(A \\cap B)$</div>
+    </div>
+    <div class="form-sec-title" style="color:var(--teal);margin-top:4px">Intersección · Condicionada</div>
+    <div class="form-card teal">
+      <div class="form-name">Regla del producto</div>
+      <div class="form-expr" data-tex>$P(A \\cap B) = P(A) \\cdot P(B \\mid A)$</div>
+    </div>
+    <div class="form-card teal">
+      <div class="form-name">Condicionada</div>
+      <div class="form-expr" data-tex>$P(A \\mid B) = \\dfrac{P(A \\cap B)}{P(B)}$</div>
+    </div>
+    <div class="form-sec-title" style="color:var(--orange);margin-top:4px">Probabilidad total · Bayes</div>
+    <div class="form-card orange">
+      <div class="form-name">Probabilidad total</div>
+      <div class="form-expr" data-tex>$P(A) = \\sum P(B_i) \\cdot P(A \\mid B_i)$</div>
+      <div class="form-note">Suma de los productos de <b>todos los caminos</b> que llevan a A.</div>
+    </div>
+    <div class="form-card purple">
+      <div class="form-name">Bayes</div>
+      <div class="form-expr" data-tex>$P(B_i \\mid A) = \\dfrac{P(B_i) \\cdot P(A \\mid B_i)}{P(A)}$</div>
+      <div class="form-note">Dar la vuelta a la condicionada.</div>
+    </div>
+    <div class="form-sec-title" style="color:var(--lime);margin-top:4px">Independencia · De Morgan</div>
+    <div class="form-card lime">
+      <div class="form-name">Independencia</div>
+      <div class="form-expr" data-tex>$P(A \\cap B) = P(A) \\cdot P(B)$</div>
+      <div class="form-note">$P(A \\mid B) = P(A)$</div>
+    </div>
+    <div class="form-card lime">
+      <div class="form-name">De Morgan I</div>
+      <div class="form-expr" data-tex>$\\overline{A \\cup B} = \\bar{A} \\cap \\bar{B}$</div>
+    </div>
+    <div class="form-card lime">
+      <div class="form-name">De Morgan II</div>
+      <div class="form-expr" data-tex>$\\overline{A \\cap B} = \\bar{A} \\cup \\bar{B}$</div>
+    </div>
+    <a class="form-link" href="3.0-formulario-probabilidad.html">
+      Ver formulario completo con diagramas →
+    </a>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+//  PROBLEMAS
+// ═══════════════════════════════════════════
+const problems=[
+{
+  id:1,tipo:"Venn · De Morgan · Independencia",titulo:"Operaciones con sucesos",
+  datos:["P(A)=0{,}6","P(B)=0{,}5","P(A\\cap B)=0{,}3"],
+  apartados:[
+    {letra:"a",pregunta:"Calcula $P(A\\cup B)$.",
+      opciones:["$P(A\\cup B)=0{,}8$","$P(A\\cup B)=1{,}1$","$P(A\\cup B)=0{,}6$"],correcta:0,
+      desarrollo:`<b>Fórmula de la unión:</b><br>$$P(A\\cup B)=P(A)+P(B)-P(A\\cap B)=0{,}6+0{,}5-0{,}3=\\boxed{0{,}8}$$
+Sumamos las dos regiones del diagrama de Venn y restamos la intersección para no contarla dos veces.`},
+    {letra:"b",pregunta:"Calcula $P(\\overline{A}\\cap\\overline{B})$ usando De Morgan.",
+      opciones:["$0{,}3$","$0{,}2$","$0{,}5$"],correcta:1,
+      desarrollo:`<b>Primera ley de De Morgan:</b><br>$$\\overline{A\\cup B}=\\overline{A}\\cap\\overline{B}$$
+$$P(\\overline{A}\\cap\\overline{B})=1-P(A\\cup B)=1-0{,}8=\\boxed{0{,}2}$$
+<span class="hl">Probabilidad de que no ocurra ninguno de los dos sucesos.</span>`},
+    {letra:"c",pregunta:"¿Son $A$ y $B$ independientes?",
+      opciones:["Sí, porque $P(A\\cap B)=P(A)\\cdot P(B)$","No, porque $P(A\\cap B)\\neq P(A)\\cdot P(B)$","No se puede determinar"],correcta:0,
+      desarrollo:`<b>Condición de independencia:</b><br>$$P(A)\\cdot P(B)=0{,}6\\times 0{,}5=0{,}30=P(A\\cap B)\\;✓$$
+<span class="hl">A y B son independientes.</span>`},
+  ]
+},
+{
+  id:2,tipo:"Árbol · Condicionada · Bayes",titulo:"Probabilidad condicionada",
+  datos:["P(A)=0{,}4","P(B\\mid A)=0{,}7","P(B\\mid\\bar{A})=0{,}2"],
+  apartados:[
+    {letra:"a",pregunta:"Construye un árbol y calcula $P(A\\cap B)$.",
+      opciones:["$P(A\\cap B)=0{,}28$","$P(A\\cap B)=0{,}40$","$P(A\\cap B)=0{,}12$"],correcta:0,
+      desarrollo:`<b>Regla del producto — camino A→B del árbol:</b><br>
+$$P(A\\cap B)=P(A)\\cdot P(B|A)=0{,}4\\times 0{,}7=\\boxed{0{,}28}$$
+`+svgArbol({firstLabel:"P(A)",firstP:"0,4",notFirstLabel:"P(Ā)",notFirstP:"0,6",
+  branches:[{condLabel:"P(B|A)",condP:"0,7",jointLabel:"P(A∩B)",jointP:"0,28"},{condLabel:"P(B̄|A)",condP:"0,3",jointLabel:"P(A∩B̄)",jointP:"0,12"},
+    {condLabel:"P(B|Ā)",condP:"0,2",jointLabel:"P(Ā∩B)",jointP:"0,12"},{condLabel:"P(B̄|Ā)",condP:"0,8",jointLabel:"P(Ā∩B̄)",jointP:"0,48"}]
+})+`Seguimos el <span class="hl">camino</span> A→B. El producto de las probabilidades de ese camino da la probabilidad conjunta.`},
+    {letra:"b",pregunta:"Calcula $P(B)$ con la probabilidad total.",
+      opciones:["$P(B)=0{,}40$","$P(B)=0{,}50$","$P(B)=0{,}28$"],correcta:0,
+      desarrollo:`<b>Probabilidad total</b> — suma de todos los caminos que llevan a $B$:<br>
+$$P(B)=P(A)\\cdot P(B|A)+P(\\bar{A})\\cdot P(B|\\bar{A})=0{,}4\\times 0{,}7+0{,}6\\times 0{,}2=0{,}28+0{,}12=\\boxed{0{,}40}$$
+Hay dos caminos que terminan en $B$: el camino A→B y el camino Ā→B.`},
+    {letra:"c",pregunta:"Dado que ocurrió $B$, calcula $P(A|B)$ con Bayes.",
+      opciones:["$P(A|B)=0{,}70$","$P(A|B)=0{,}60$","$P(A|B)=0{,}28$"],correcta:0,
+      desarrollo:`<b>Teorema de Bayes — "invertir" la condición:</b><br>
+$$P(A|B)=\\frac{P(A)\\cdot P(B|A)}{P(B)}=\\frac{0{,}28}{0{,}40}=\\boxed{0{,}70}$$
+De los 0,40 totales de $B$, el camino A→B aporta 0,28 → el 70%.`},
+  ]
+},
+{
+  id:3,tipo:"Tabla de contingencia",titulo:"Tabla de contingencia",
+  datos:["P(A)=0{,}5","P(B)=0{,}6","P(\\bar{A}\\cap B)=0{,}3"],
+  apartados:[
+    {letra:"a",pregunta:"Completa la tabla y calcula $P(A\\cap B)$.",
+      opciones:["$P(A\\cap B)=0{,}30$","$P(A\\cap B)=0{,}20$","$P(A\\cap B)=0{,}15$"],correcta:0,
+      desarrollo:`<b>Construcción de la tabla:</b><br>
+$P(A\\cap B)=P(B)-P(\\bar{A}\\cap B)=0{,}6-0{,}3=\\boxed{0{,}30}$<br>
+`+htmlTabla([['','B','B̄','Total'],['A',{v:'0,30',hl:true},'0,20','0,50'],['Ā','0,30','0,20','0,50'],['Total','0,60','0,40','1']])+
+`Cada celda es la intersección de su fila y su columna. Filas y columnas suman sus totales marginales.`},
+    {letra:"b",pregunta:"Calcula $P(A|B)$ a partir de la tabla.",
+      opciones:["$P(A|B)=0{,}50$","$P(A|B)=0{,}60$","$P(A|B)=0{,}30$"],correcta:0,
+      desarrollo:`<b>Probabilidad condicionada — columna B como universo:</b><br>
+$$P(A|B)=\\frac{P(A\\cap B)}{P(B)}=\\frac{0{,}30}{0{,}60}=\\boxed{0{,}50}$$
+`+htmlTabla([['','B','B̄','Total'],['A',{v:'0,30',hl:true},{v:'—',dim:true},{v:'0,50',dim:true}],['Ā',{v:'0,30',hl:true},{v:'—',dim:true},{v:'0,50',dim:true}],['Total (universo)','0,60',{v:'—',dim:true},{v:'1',dim:true}]])+
+`De los 0,60 de la columna B, 0,30 corresponden a A → $P(A|B)=0{,}50$.`},
+    {letra:"c",pregunta:"¿Son $A$ y $B$ independientes según la tabla?",
+      opciones:["Sí, porque $P(A|B)=P(A)$","No, porque $P(A|B)\\neq P(A)$","No se puede determinar"],correcta:0,
+      desarrollo:`<b>Independencia mediante la tabla:</b><br>
+$P(A|B)=0{,}50$ y $P(A)=0{,}50$ → <span class="hl">coinciden ✓</span><br>
+Verificación: $P(A)\\cdot P(B)=0{,}5\\times 0{,}6=0{,}30=P(A\\cap B)\\;✓$`},
+  ]
+},
+{
+  id:4,tipo:"Probabilidad total · Bayes",titulo:"Tres hipótesis — Bayes",
+  datos:["P(H_1)=0{,}3,\\;P(H_2)=0{,}5,\\;P(H_3)=0{,}2","P(E\\mid H_1)=0{,}6","P(E\\mid H_2)=0{,}4","P(E\\mid H_3)=0{,}1"],
+  apartados:[
+    {letra:"a",pregunta:"Comprueba que $H_1,H_2,H_3$ forman una partición de $\\Omega$.",
+      opciones:["Sí: son excluyentes y suman 1","No, porque no suman 1","Solo si $P(H_i\\cap H_j)=0$, que no está garantizado"],correcta:0,
+      desarrollo:`<b>Definición de partición:</b><br>
+Mutuamente excluyentes y exhaustivos. Comprobación: $0{,}3+0{,}5+0{,}2=1\\;✓$`},
+    {letra:"b",pregunta:"Calcula $P(E)$ con la probabilidad total.",
+      opciones:["$P(E)=0{,}38$","$P(E)=0{,}50$","$P(E)=0{,}46$"],correcta:0,
+      desarrollo:`<b>Probabilidad total</b> — suma de los tres caminos hacia $E$:
+$$P(E)=0{,}3\\cdot0{,}6+0{,}5\\cdot0{,}4+0{,}2\\cdot0{,}1=0{,}18+0{,}20+0{,}02=\\boxed{0{,}38}$$
+`+svgArbol({firstLabel:"P(H₁)",firstP:"0,3",notFirstLabel:"P(H₂∪H₃)",notFirstP:"0,7",
+  branches:[{condLabel:"P(E|H₁)",condP:"0,6",jointLabel:"P(H₁∩E)",jointP:"0,18"},{condLabel:"P(Ē|H₁)",condP:"0,4",jointLabel:"P(H₁∩Ē)",jointP:"0,12"},
+    {condLabel:"P(E|H₂)",condP:"0,4",jointLabel:"P(H₂∩E)",jointP:"0,20"},{condLabel:"P(E|H₃)",condP:"0,1",jointLabel:"P(H₃∩E)",jointP:"0,02"}]
+})+`Los caminos que llevan a $E$ son tres. Se suman sus probabilidades para obtener la probabilidad total de $E$.`},
+    {letra:"c",pregunta:"Dado que ocurrió $E$, calcula $P(H_2|E)$ con Bayes.",
+      opciones:["$P(H_2|E)\\approx0{,}526$","$P(H_2|E)=0{,}400$","$P(H_2|E)\\approx0{,}473$"],correcta:0,
+      desarrollo:`<b>Bayes:</b>
+$$P(H_2|E)=\\frac{0{,}5\\times0{,}4}{0{,}38}=\\frac{0{,}20}{0{,}38}\\approx\\boxed{0{,}526}$$
+De los 0,38 de probabilidad total de $E$, el camino $H_2\\to E$ aporta 0,20 → el 52,6%.`},
+  ]
+},
+{
+  id:5,tipo:"Independencia · De Morgan",titulo:"De Morgan e independencia",
+  datos:["P(A)=0{,}5","P(B)=0{,}4","A\\text{ y }B\\text{ son independientes}"],
+  apartados:[
+    {letra:"a",pregunta:"Calcula $P(A\\cap B)$.",
+      opciones:["$P(A\\cap B)=0{,}20$","$P(A\\cap B)=0{,}45$","$P(A\\cap B)=0{,}10$"],correcta:0,
+      desarrollo:`<b>Sucesos independientes:</b><br>$$P(A\\cap B)=P(A)\\cdot P(B)=0{,}5\\times0{,}4=\\boxed{0{,}20}$$`},
+    {letra:"b",pregunta:"Calcula $P(\\overline{A}\\cup\\overline{B})$ usando De Morgan.",
+      opciones:["$0{,}80$","$0{,}60$","$0{,}70$"],correcta:0,
+      desarrollo:`<b>Segunda ley de De Morgan:</b>
+$$\\overline{A}\\cup\\overline{B}=\\overline{A\\cap B}\\implies P(\\overline{A}\\cup\\overline{B})=1-0{,}20=\\boxed{0{,}80}$$
+<span class="hl">Truco:</span> el complementario de "los dos a la vez" es "al menos uno no ocurre".`},
+    {letra:"c",pregunta:"¿La independencia se conserva en los complementarios?",
+      opciones:["Sí, $\\overline{A}$ y $\\overline{B}$ también son independientes","No, la independencia no se hereda","Solo si $P(A)=P(B)$"],correcta:0,
+      desarrollo:`<b>Independencia y complementarios:</b><br>
+$$P(\\overline{A}\\cap\\overline{B})=P(\\overline{A})\\cdot P(\\overline{B})=0{,}5\\times0{,}6=0{,}30$$
+Verificación: $P(A\\cup B)=0{,}70\\implies P(\\overline{A\\cup B})=0{,}30\\;✓$<br>
+<span class="hl">La independencia se preserva en los complementarios.</span>`},
+  ]
+},
+];
+
+// ═══════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════
+let currentProb=0,formularioOpen=false;
+const solvedAp={},solvedP=new Set();
+function apKey(p,a){return `${p}_${a}`;}
+
+// ═══════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════
+function buildTabs(){
+  const row=document.getElementById('tabs-row');
+  row.innerHTML='';
+  problems.forEach((p,i)=>{
+    const btn=document.createElement('button');
+    let cls='tab-btn';
+    if(i===currentProb)cls+=' active';
+    if(solvedP.has(i))cls+=' solved';
+    btn.className=cls;
+    btn.innerHTML=`<span class="tab-num">${i+1}</span>`;
+    btn.onclick=()=>{currentProb=i;buildTabs();renderProblem();};
+    row.appendChild(btn);
+  });
+  document.getElementById('header-chip').textContent=`P ${currentProb+1}/${problems.length}`;
+}
+
+// ═══════════════════════════════════════════
+//  RENDER PROBLEMA
+// ═══════════════════════════════════════════
+function renderProblem(){
+  const p=problems[currentProb],pi=currentProb;
+  const pc=document.getElementById('page-content');
+  pc.style.animation='none';pc.offsetHeight;pc.style.animation='';
+
+  const allSolved=p.apartados.every((_,ai)=>solvedAp[apKey(pi,ai)]);
+  if(allSolved)solvedP.add(pi);
+
+  let html=`<div class="prob-header">
+    <div class="prob-num-badge">${p.id}</div>
+    <div class="prob-meta"><span class="prob-type-tag">${p.tipo}</span><div class="prob-title">${p.titulo}</div></div>
+  </div>
+  <div class="datos-card">
+    <span class="datos-tag">Datos del problema</span>
+    <div class="datos-list">${p.datos.map(d=>`<div class="dato-row"><span class="dato-expr">$${d}$</span></div>`).join('')}</div>
+  </div>
+  <div class="actions-bar">
+    <button class="btn-formula${formularioOpen?' open':''}" id="btn-formula" onclick="toggleFormulario()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      ${formularioOpen?'Ocultar formulario':'Ver formulario'}
+    </button>
+    <button class="btn-pizarra" onclick="openPizarra()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <div class="btn-pizarra-label">
+        <span>Pizarra</span>
+        <span class="btn-pizarra-sub">táctil</span>
+      </div>
+    </button>
+  </div>
+  <div class="formulario-panel${formularioOpen?' open':''}" id="formulario-panel">
+    ${formularioHTML()}
+  </div>
+  <div class="apartados-wrap">`;
+
+  p.apartados.forEach((ap,ai)=>{
+    const solved=!!solvedAp[apKey(pi,ai)];
+    html+=`<div class="apartado-card${solved?' solved':''}" id="ap-card-${ai}">
+      <div class="apartado-head">
+        <div class="apartado-label">Apartado ${ap.letra.toUpperCase()} <span class="check-icon">✓</span></div>
+        <div class="apartado-q">${ap.pregunta}</div>
+      </div>
+      <div class="opts-list" id="opts-${ai}">
+        ${ap.opciones.map((o,oi)=>`
+          <button class="opt-btn${solved&&oi===ap.correcta?' correct':''}" ${solved?'disabled':''} onclick="checkAns(${ai},${oi})">
+            <div class="opt-letter">${['A','B','C'][oi]}</div><span>${o}</span>
+          </button>`).join('')}
+      </div>
+      <div class="feedback${solved?' correct':''}" id="fb-${ai}" style="display:${solved?'block':'none'}">${solved?'✓ Correcto.':''}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  const hasAny=p.apartados.some((_,ai)=>solvedAp[apKey(pi,ai)]);
+  const entries=p.apartados.map((ap,ai)=>solvedAp[apKey(pi,ai)]?`<div class="dev-entry">${ap.desarrollo}</div>`:'').join('');
+  html+=`<div class="dev-panel">
+    <div class="dev-panel-header"><div class="dev-dot${hasAny?' active':''}"></div><span class="dev-panel-title">Desarrollo paso a paso</span></div>
+    <div class="dev-entries" id="dev-entries">${hasAny?entries:'<div class="dev-empty">Responde correctamente para ver el desarrollo.</div>'}</div>
+  </div>`;
+
+  pc.innerHTML=html;
+  if(window.MathJax)MathJax.typesetPromise([pc]);
+}
+
+// ═══════════════════════════════════════════
+//  CHECK
+// ═══════════════════════════════════════════
+function checkAns(ai,oi){
+  const p=problems[currentProb],ap=p.apartados[ai],pi=currentProb;
+  const btns=document.querySelectorAll(`#opts-${ai} .opt-btn`);
+  const fb=document.getElementById(`fb-${ai}`);
+  if(oi===ap.correcta){
+    btns.forEach((b,i)=>{b.disabled=true;if(i===oi)b.classList.add('correct');});
+    fb.textContent='✓ Correcto.';fb.className='feedback correct';fb.style.display='block';
+    document.getElementById(`ap-card-${ai}`).classList.add('solved');
+    solvedAp[apKey(pi,ai)]=true;
+    const entries=document.getElementById('dev-entries');
+    if(entries.querySelector('.dev-empty'))entries.innerHTML='';
+    const entry=document.createElement('div');entry.className='dev-entry';entry.innerHTML=ap.desarrollo;
+    entries.appendChild(entry);
+    document.querySelectorAll('.dev-dot').forEach(d=>d.classList.add('active'));
+    if(window.MathJax)MathJax.typesetPromise([entry]);
+    setTimeout(()=>{entries.scrollTop=entries.scrollHeight;},300);
+    if(p.apartados.every((_,j)=>solvedAp[apKey(pi,j)])){solvedP.add(pi);buildTabs();}
+  }else{
+    btns[oi].classList.add('wrong');btns[oi].disabled=true;
+    fb.textContent='Respuesta incorrecta. Inténtalo de nuevo.';fb.className='feedback wrong';fb.style.display='block';
+  }
+}
+
+// ═══════════════════════════════════════════
+//  FORMULARIO DESPLEGABLE
+// ═══════════════════════════════════════════
+function toggleFormulario(){
+  formularioOpen=!formularioOpen;
+  const panel=document.getElementById('formulario-panel');
+  const btn=document.getElementById('btn-formula');
+  if(formularioOpen){
+    panel.classList.add('open');
+    btn.classList.add('open');
+    btn.querySelector('span:not(.btn-pizarra-sub)') // not applicable
+    btn.innerHTML=btn.innerHTML.replace('Ver formulario','Ocultar formulario');
+    if(window.MathJax)MathJax.typesetPromise([panel]);
+  }else{
+    panel.classList.remove('open');
+    btn.classList.remove('open');
+    btn.innerHTML=btn.innerHTML.replace('Ocultar formulario','Ver formulario');
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PIZARRA FULLSCREEN
+// ═══════════════════════════════════════════
+let drawing=false,lastX=0,lastY=0,penColor='#e8e8f0',penSize=3;
+let pizCanvas=null,pizCtx=null,pizReady=false;
+
+function initPizarra(){
+  pizCanvas=document.getElementById('pizarra-canvas');
+  pizCtx=pizCanvas.getContext('2d');
+  resizePiz();
+  window.addEventListener('resize',resizePiz);
+  function pos(e){const r=pizCanvas.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+  function start(e){e.preventDefault();drawing=true;const p=pos(e);lastX=p.x;lastY=p.y;}
+  function move(e){
+    if(!drawing)return;e.preventDefault();
+    const p=pos(e);
+    pizCtx.beginPath();pizCtx.moveTo(lastX,lastY);pizCtx.lineTo(p.x,p.y);
+    pizCtx.strokeStyle=penColor;pizCtx.lineWidth=penSize;
+    pizCtx.lineCap='round';pizCtx.lineJoin='round';pizCtx.stroke();
+    lastX=p.x;lastY=p.y;
+  }
+  function stop(){drawing=false;}
+  pizCanvas.addEventListener('mousedown',start);pizCanvas.addEventListener('mousemove',move);
+  pizCanvas.addEventListener('mouseup',stop);pizCanvas.addEventListener('mouseleave',stop);
+  pizCanvas.addEventListener('touchstart',start,{passive:false});
+  pizCanvas.addEventListener('touchmove',move,{passive:false});
+  pizCanvas.addEventListener('touchend',stop);
+  pizReady=true;
+}
+
+function resizePiz(){
+  if(!pizCanvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=window.innerWidth,H=window.innerHeight-52;
+  pizCanvas.style.width=W+'px';pizCanvas.style.height=H+'px';
+  pizCanvas.width=W*dpr;pizCanvas.height=H*dpr;
+  pizCtx.scale(dpr,dpr);
+  pizCtx.fillStyle='#0e0e1a';pizCtx.fillRect(0,0,W,H);
+}
+
+function openPizarra(){
+  document.getElementById('pizarra-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(!pizReady)initPizarra();
+}
+function closePizarra(){
+  document.getElementById('pizarra-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function clearCanvas(){
+  if(!pizCtx)return;
+  pizCtx.fillStyle='#0e0e1a';
+  pizCtx.fillRect(0,0,pizCanvas.width/(window.devicePixelRatio||1),pizCanvas.height/(window.devicePixelRatio||1));
+}
+function setColor(col,btn){penColor=col;document.querySelectorAll('.btn-color').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function setSize(sz,btn){penSize=sz;document.querySelectorAll('.btn-size').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+window.onload=()=>{buildTabs();renderProblem();};
+</script>
+<script data-goatcounter="https://gabrielrogo.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

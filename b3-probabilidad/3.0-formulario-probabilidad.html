@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Formulario de Probabilidad · MatEBAUticas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
+    options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg:         #0d0d14;
+  --bg2:        #13131f;
+  --bg3:        #1a1a2a;
+  --surface:    #1e1e30;
+  --border:     #2a2a40;
+  --lime:       #b8ff3c;
+  --lime-dim:   rgba(184,255,60,0.10);
+  --text:       #e8e8f0;
+  --text-soft:  #7a7a9a;
+  --text-dim:   #4a4a6a;
+  --blue:       #4a9eff;
+  --blue-dim:   rgba(74,158,255,0.10);
+  --blue-mid:   rgba(74,158,255,0.18);
+  --purple:     #a78bfa;
+  --purple-dim: rgba(167,139,250,0.10);
+  --purple-mid: rgba(167,139,250,0.18);
+  --teal:       #2dd4bf;
+  --teal-dim:   rgba(45,212,191,0.10);
+  --teal-mid:   rgba(45,212,191,0.18);
+  --orange:     #fb923c;
+  --orange-dim: rgba(251,146,60,0.10);
+  --orange-mid: rgba(251,146,60,0.18);
+  --radius:     14px;
+  --radius-sm:  10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.6;
+}
+.glow-blob {
+  position: fixed; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%);
+  top: -80px; right: -100px; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+.module-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,20,0.94); backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
+  padding: 0 18px; height: 56px; display: flex; align-items: center; gap: 14px;
+}
+.btn-back {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-soft); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; flex-shrink: 0; transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-back:active { background: var(--bg3); }
+.module-header-info { flex: 1; overflow: hidden; }
+.module-header-tag {
+  font-family: 'Syne Mono', monospace; font-size: 0.58rem; color: var(--purple);
+  letter-spacing: 0.1em; text-transform: uppercase; display: block;
+}
+.module-header-title {
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700;
+  color: var(--text); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; display: block;
+}
+.header-badge {
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--purple-dim); color: var(--purple);
+  border: 1px solid rgba(167,139,250,0.25); white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── LAYOUT ── */
+.app {
+  position: relative; z-index: 1; max-width: 480px; margin: 0 auto;
+  padding: 18px 16px 52px;
+  display: flex; flex-direction: column; gap: 10px;
+  animation: fadeUp 0.35s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── TÍTULOS DE SECCIÓN ── */
+.sec-label {
+  font-family: 'Syne Mono', monospace; font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.11em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 6px;
+}
+.sec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── TARJETAS ── */
+.fcard {
+  border-radius: var(--radius); padding: 13px 15px 12px;
+  border: 1px solid var(--border);
+}
+.fcard.blue   { background: var(--blue-dim);   border-left: 3px solid var(--blue);   }
+.fcard.teal   { background: var(--teal-dim);   border-left: 3px solid var(--teal);   }
+.fcard.orange { background: var(--orange-dim); border-left: 3px solid var(--orange); }
+.fcard.purple { background: var(--purple-dim); border-left: 3px solid var(--purple); }
+.fcard.lime   { background: var(--lime-dim);   border-left: 3px solid var(--lime);   }
+.fcard.neutral{ background: var(--surface);    border-left: 3px solid var(--border); }
+
+.fcard-name {
+  font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 800;
+  letter-spacing: -0.01em; margin-bottom: 7px;
+}
+.fcard.blue   .fcard-name { color: var(--blue);   }
+.fcard.teal   .fcard-name { color: var(--teal);   }
+.fcard.orange .fcard-name { color: var(--orange); }
+.fcard.purple .fcard-name { color: var(--purple); }
+.fcard.lime   .fcard-name { color: var(--lime);   }
+.fcard.neutral .fcard-name { color: var(--text-soft); }
+
+.fcard-expr { font-size: 0.86rem; line-height: 1.85; color: var(--text); overflow-x: auto; }
+.fcard-note { font-size: 0.74rem; color: var(--text-soft); line-height: 1.55; margin-top: 6px; }
+.fcard-note b { color: var(--text); font-weight: 600; }
+.fcard-note .hl { color: var(--lime); font-weight: 700; }
+
+/* Pill inline de "caminos" */
+.pill {
+  display: inline-block; background: var(--orange-mid);
+  color: var(--orange); font-weight: 700; font-size: 0.72rem;
+  padding: 1px 7px; border-radius: 20px;
+}
+
+/* ── ÁRBOL SVG ── */
+.tree-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.tree-card-title {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.tree-card svg { display: block; width: 100%; background: var(--bg2); }
+.tree-card-note {
+  padding: 10px 14px; border-top: 1px solid var(--border);
+  font-size: 0.74rem; color: var(--text-soft); line-height: 1.55;
+}
+.tree-card-note b { color: var(--teal); }
+.tree-card-note .bpur { color: var(--orange); font-weight: 700; }
+
+/* ── TABLA CONTINGENCIA ── */
+.ctable-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.ctable-card-title {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.ctable { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.ctable td, .ctable th { padding: 9px 7px; border: 1px solid var(--border); text-align: center; line-height: 1.4; }
+.ctable .th-cell { background: var(--bg3); color: var(--text-soft); font-weight: 700; font-size: 0.74rem; }
+.ctable .row-head { background: var(--bg3); color: var(--text-soft); font-weight: 700; text-align: left; padding-left: 10px; }
+.ctable .cell-val { color: var(--text); font-size: 0.76rem; }
+.ctable .cell-total { color: var(--lime); font-weight: 700; background: rgba(184,255,60,0.06); }
+
+/* ── DIAGRAMAS VENN ── */
+.venn-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.venn-card-title {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.venn-card svg { display: block; width: 100%; background: var(--bg2); }
+.venn-card-note {
+  padding: 10px 14px; border-top: 1px solid var(--border);
+  font-size: 0.74rem; color: var(--text-soft); line-height: 1.55;
+}
+.venn-card-note b { color: var(--lime); }
+
+/* ── TABLA RESUMEN ── */
+.rtable-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.rtable-card-title {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; color: var(--text-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.rtable { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+.rtable th {
+  background: var(--bg3); color: var(--text-dim);
+  font-family: 'Syne Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border);
+}
+.rtable td { padding: 8px 10px; border-bottom: 1px solid rgba(42,42,64,0.6); vertical-align: top; line-height: 1.5; }
+.rtable tr:last-child td { border-bottom: none; }
+.rtable .col-name { font-weight: 700; color: var(--text); white-space: nowrap; min-width: 80px; }
+.rtable .col-expr { color: var(--lime); font-size: 0.74rem; min-width: 130px; }
+.rtable .col-desc { color: var(--text-soft); font-size: 0.73rem; }
+.rtable .sep-row td {
+  background: var(--bg3); padding: 4px 10px;
+  font-family: 'Syne Mono', monospace; font-size: 0.56rem;
+  color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ── AUTOR ── */
+.author-note {
+  font-size: 0.7rem; color: var(--text-dim);
+  display: flex; align-items: center; gap: 8px; padding-top: 8px;
+}
+.author-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border); }
+</style>
+</head>
+<body>
+<div class="glow-blob"></div>
+
+<header class="module-header">
+  <a class="btn-back" href="../index.html">←</a>
+  <div class="module-header-info">
+    <span class="module-header-tag">Bloque 3 · Probabilidad</span>
+    <span class="module-header-title">Formulario</span>
+  </div>
+  <div class="header-badge">REF</div>
+</header>
+
+<div class="app">
+
+  <!-- ══ 1. AXIOMAS ══ -->
+  <div class="sec-label">
+    <div class="sec-dot" style="background:var(--blue)"></div>
+    <span style="color:var(--blue)">1 · Axiomas y complementario</span>
+  </div>
+  <div class="fcard blue">
+    <div class="fcard-name">Axiomas básicos</div>
+    <div class="fcard-expr">$0 \le P(A) \le 1$ &nbsp;·&nbsp; $P(\Omega) = 1$ &nbsp;·&nbsp; $P(\varnothing) = 0$</div>
+  </div>
+  <div class="fcard blue">
+    <div class="fcard-name">Complementario</div>
+    <div class="fcard-expr">$$P(\bar{A}) = 1 - P(A)$$</div>
+    <div class="fcard-note">Lo que <b>no es</b> $A$. Útil cuando calcular el contrario es más fácil.</div>
+  </div>
+
+  <!-- ══ 2. UNIÓN ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--blue)"></div>
+    <span style="color:var(--blue)">2 · Unión</span>
+  </div>
+  <div class="fcard blue">
+    <div class="fcard-name">Unión</div>
+    <div class="fcard-expr">$$P(A \cup B) = P(A) + P(B) - P(A \cap B)$$</div>
+    <div class="fcard-note">Que ocurra <b>al menos uno</b> de los dos sucesos.</div>
+  </div>
+
+  <!-- ══ 3. DIFERENCIA ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--blue)"></div>
+    <span style="color:var(--blue)">3 · Diferencia</span>
+  </div>
+  <div class="fcard blue">
+    <div class="fcard-name">Diferencia</div>
+    <div class="fcard-expr">
+      $P(A - B) = P(A) - P(A \cap B)$<br>
+      $P(B - A) = P(B) - P(A \cap B)$
+    </div>
+    <div class="fcard-note">$A$ ocurre <b>sin que ocurra</b> $B$.</div>
+  </div>
+
+  <!-- ══ 4. INTERSECCIÓN ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--teal)"></div>
+    <span style="color:var(--teal)">4 · Intersección</span>
+  </div>
+  <div class="fcard teal">
+    <div class="fcard-name">Regla del producto</div>
+    <div class="fcard-expr">
+      $P(A \cap B) = P(A) \cdot P(B \mid A)$<br>
+      $\phantom{P(A \cap B)} = P(B) \cdot P(A \mid B)$
+    </div>
+    <div class="fcard-note">Que ocurran <b>ambos</b> sucesos.</div>
+  </div>
+
+  <!-- ══ 5. CONDICIONADA ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--teal)"></div>
+    <span style="color:var(--teal)">5 · Probabilidad condicionada</span>
+  </div>
+  <div class="fcard teal">
+    <div class="fcard-name">Condicionada</div>
+    <div class="fcard-expr">
+      $$P(A \mid B) = \frac{P(A \cap B)}{P(B)} \qquad P(B \mid A) = \frac{P(A \cap B)}{P(A)}$$
+    </div>
+    <div class="fcard-note">Probabilidad de $A$ <b>sabiendo que ya ocurrió</b> $B$.</div>
+  </div>
+
+  <!-- ══ 6. PROB. TOTAL ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--orange)"></div>
+    <span style="color:var(--orange)">6 · Probabilidad total</span>
+  </div>
+  <div class="fcard orange">
+    <div class="fcard-name">Teorema de la probabilidad total</div>
+    <div class="fcard-expr">
+      Si $\{B_1, \ldots, B_n\}$ es una partición de $\Omega$:
+      $$P(A) = \sum_{i=1}^{n} P(B_i) \cdot P(A \mid B_i)$$
+      Caso $n = 2$:
+      $$P(A) = P(B_1) \cdot P(A \mid B_1) + P(B_2) \cdot P(A \mid B_2)$$
+    </div>
+    <div class="fcard-note">
+      Calcular $P(A)$ sumando los productos de cada <span class="pill">camino</span> del árbol que termina en $A$.
+    </div>
+  </div>
+
+  <!-- ══ 7. BAYES ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--purple)"></div>
+    <span style="color:var(--purple)">7 · Teorema de Bayes</span>
+  </div>
+  <div class="fcard purple">
+    <div class="fcard-name">Bayes — "dar la vuelta" a la condicionada</div>
+    <div class="fcard-expr">
+      $$P(B_i \mid A) = \frac{P(B_i) \cdot P(A \mid B_i)}{P(A)}$$
+    </div>
+    <div class="fcard-note">
+      <b>$P(A)$:</b> calculada con la probabilidad total (suma de todos los <span class="pill">caminos</span> que llevan a $A$).<br>
+      <b>$P(B_i) \cdot P(A \mid B_i)$:</b> producto de las probabilidades del camino $B_i \to A$.<br>
+      <b>Cuándo usarlo:</b> conocido el efecto, calcular la causa.
+    </div>
+  </div>
+
+  <!-- ══ 8. ÁRBOL ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--teal)"></div>
+    <span style="color:var(--teal)">8 · Árbol de probabilidad</span>
+  </div>
+  <div class="tree-card">
+    <div class="tree-card-title">Estructura del árbol — dos hipótesis B₁ y B₂</div>
+    <svg viewBox="0 0 380 210" xmlns="http://www.w3.org/2000/svg">
+      <rect width="380" height="210" fill="#13131f"/>
+      <!-- Ramas nivel 1 -->
+      <line x1="30" y1="105" x2="108" y2="60"  stroke="#4a9eff" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="30" y1="105" x2="108" y2="150" stroke="#3a3a5a" stroke-width="1.6" stroke-linecap="round"/>
+      <!-- Nodo raíz -->
+      <rect x="4" y="95" width="26" height="20" rx="4" fill="#1e1e30" stroke="#4a4a6a" stroke-width="0.8"/>
+      <text x="17" y="109" fill="#7a7a9a" font-size="10" font-family="Space Grotesk,sans-serif" text-anchor="middle">Ω</text>
+      <!-- Nodos B1, B2 -->
+      <rect x="108" y="48"  width="30" height="20" rx="4" fill="#162040" stroke="#4a9eff" stroke-width="1"/>
+      <text x="123" y="62"  fill="#4a9eff" font-size="10" font-family="Syne,sans-serif" font-weight="800" text-anchor="middle">B₁</text>
+      <rect x="108" y="140" width="30" height="20" rx="4" fill="#1e1e30" stroke="#4a4a6a" stroke-width="0.8"/>
+      <text x="123" y="154" fill="#7a7a9a" font-size="10" font-family="Syne,sans-serif" text-anchor="middle">B₂</text>
+      <!-- Etiquetas nivel 1 -->
+      <text x="62" y="72"  fill="#4a9eff" font-size="8.5" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">P(B₁)</text>
+      <text x="62" y="140" fill="#7a7a9a" font-size="8.5" font-family="Space Grotesk,sans-serif" text-anchor="middle">P(B₂)</text>
+      <!-- Ramas nivel 2 desde B1 -->
+      <line x1="138" y1="58"  x2="218" y2="25"  stroke="#2dd4bf" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="138" y1="58"  x2="218" y2="85"  stroke="#3a3a5a" stroke-width="1.6" stroke-linecap="round"/>
+      <!-- Ramas nivel 2 desde B2 -->
+      <line x1="138" y1="150" x2="218" y2="125" stroke="#fb923c" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="138" y1="150" x2="218" y2="185" stroke="#3a3a5a" stroke-width="1.6" stroke-linecap="round"/>
+      <!-- Nodos terminales -->
+      <rect x="218" y="14"  width="56" height="20" rx="4" fill="#112828" stroke="#2dd4bf" stroke-width="1"/>
+      <text x="246" y="28"  fill="#2dd4bf" font-size="9" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">A ∩ B₁</text>
+      <rect x="218" y="75"  width="56" height="20" rx="4" fill="#1e1e30" stroke="#4a4a6a" stroke-width="0.8"/>
+      <text x="246" y="89"  fill="#7a7a9a" font-size="9" font-family="Space Grotesk,sans-serif" text-anchor="middle">Ā ∩ B₁</text>
+      <rect x="218" y="115" width="56" height="20" rx="4" fill="#201510" stroke="#fb923c" stroke-width="1"/>
+      <text x="246" y="129" fill="#fb923c" font-size="9" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">A ∩ B₂</text>
+      <rect x="218" y="175" width="56" height="20" rx="4" fill="#1e1e30" stroke="#4a4a6a" stroke-width="0.8"/>
+      <text x="246" y="189" fill="#7a7a9a" font-size="9" font-family="Space Grotesk,sans-serif" text-anchor="middle">Ā ∩ B₂</text>
+      <!-- Etiquetas nivel 2 -->
+      <text x="175" y="30"  fill="#2dd4bf" font-size="7.8" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">P(A|B₁)</text>
+      <text x="175" y="85"  fill="#7a7a9a" font-size="7.8" font-family="Space Grotesk,sans-serif" text-anchor="middle">P(Ā|B₁)</text>
+      <text x="175" y="118" fill="#fb923c" font-size="7.8" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">P(A|B₂)</text>
+      <text x="175" y="185" fill="#7a7a9a" font-size="7.8" font-family="Space Grotesk,sans-serif" text-anchor="middle">P(Ā|B₂)</text>
+      <!-- Productos terminales -->
+      <text x="280" y="26"  fill="#2dd4bf" font-size="7.8" font-family="Space Grotesk,sans-serif" font-style="italic">= P(B₁)·P(A|B₁)</text>
+      <text x="280" y="127" fill="#fb923c" font-size="7.8" font-family="Space Grotesk,sans-serif" font-style="italic">= P(B₂)·P(A|B₂)</text>
+      <!-- Llave P(A) -->
+      <line x1="375" y1="24"  x2="375" y2="125" stroke="#b8ff3c" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="365" y="62"  fill="#b8ff3c" font-size="8" font-family="Syne,sans-serif" font-weight="800" text-anchor="end">P(A) =</text>
+      <text x="365" y="73"  fill="#b8ff3c" font-size="8" font-family="Space Grotesk,sans-serif" text-anchor="end">suma de</text>
+      <text x="365" y="84"  fill="#b8ff3c" font-size="8" font-family="Space Grotesk,sans-serif" text-anchor="end">caminos</text>
+    </svg>
+    <div class="tree-card-note">
+      <b>Prob. Total:</b> sumar los productos de los <span class="bpur">caminos</span> que terminan en $A$ → camino $B_1\!\to\!A$ + camino $B_2\!\to\!A$.<br>
+      <b>Bayes:</b> dividir el camino de interés entre la prob. total.
+    </div>
+  </div>
+
+  <!-- ══ 9. TABLA CONTINGENCIA ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--text-soft)"></div>
+    <span style="color:var(--text-soft)">9 · Tabla de contingencia</span>
+  </div>
+  <div class="ctable-card">
+    <div class="ctable-card-title">Estructura de la tabla</div>
+    <table class="ctable" id="ct1">
+      <tr>
+        <td class="th-cell"></td>
+        <td class="th-cell">$B$</td>
+        <td class="th-cell">$\bar{B}$</td>
+        <td class="th-cell cell-total">Total</td>
+      </tr>
+      <tr>
+        <td class="row-head">$A$</td>
+        <td class="cell-val">$P(A \cap B)$</td>
+        <td class="cell-val">$P(A \cap \bar{B})$</td>
+        <td class="cell-total">$P(A)$</td>
+      </tr>
+      <tr>
+        <td class="row-head">$\bar{A}$</td>
+        <td class="cell-val">$P(\bar{A} \cap B)$</td>
+        <td class="cell-val">$P(\bar{A} \cap \bar{B})$</td>
+        <td class="cell-total">$P(\bar{A})$</td>
+      </tr>
+      <tr>
+        <td class="row-head cell-total">Total</td>
+        <td class="cell-total">$P(B)$</td>
+        <td class="cell-total">$P(\bar{B})$</td>
+        <td class="cell-total">$1$</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ══ 10. DIAGRAMA DE VENN ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--blue)"></div>
+    <span style="color:var(--blue)">10 · Diagrama de Venn — $P(A \cap \bar{B})$</span>
+  </div>
+  <div class="venn-card">
+    <div class="venn-card-title">$P(A) - P(A \cap B) = P(A \cap \bar{B})$</div>
+    <svg viewBox="0 0 380 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="clipA1"><circle cx="52"  cy="55" r="38"/></clipPath>
+        <clipPath id="clipA2"><circle cx="168" cy="55" r="38"/></clipPath>
+        <clipPath id="clipB3"><circle cx="302" cy="55" r="38"/></clipPath>
+        <clipPath id="clipA3"><circle cx="278" cy="55" r="38"/></clipPath>
+      </defs>
+      <rect width="380" height="120" fill="#13131f"/>
+
+      <!-- ── Diagrama 1: P(A) ── -->
+      <rect x="5"  y="5" width="110" height="110" rx="6" fill="none" stroke="#2a2a40" stroke-width="0.8"/>
+      <circle cx="52" cy="55" r="38" fill="rgba(74,158,255,0.22)"/>
+      <circle cx="52" cy="55" r="38" fill="none" stroke="#4a9eff" stroke-width="1.8"/>
+      <circle cx="78" cy="55" r="38" fill="none" stroke="#2dd4bf" stroke-width="1.8"/>
+      <text x="38" y="58" fill="#4a9eff" font-size="13" font-family="Syne,sans-serif" font-weight="800">A</text>
+      <text x="90" y="58" fill="#2dd4bf" font-size="13" font-family="Syne,sans-serif" font-weight="800">B</text>
+      <text x="60" y="108" fill="#4a9eff" font-size="8.5" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">P(A)</text>
+
+      <!-- símbolo − -->
+      <text x="127" y="62" fill="#4a4a6a" font-size="22" font-family="Syne,sans-serif" font-weight="800" text-anchor="middle">−</text>
+
+      <!-- ── Diagrama 2: P(A ∩ B) ── -->
+      <rect x="136" y="5" width="110" height="110" rx="6" fill="none" stroke="#2a2a40" stroke-width="0.8"/>
+      <circle cx="168" cy="55" r="38" fill="none" stroke="#4a9eff" stroke-width="1.8"/>
+      <circle cx="194" cy="55" r="38" fill="none" stroke="#2dd4bf" stroke-width="1.8"/>
+      <circle cx="194" cy="55" r="38" fill="rgba(167,139,250,0.30)" clip-path="url(#clipA2)"/>
+      <text x="154" y="58" fill="#4a9eff" font-size="13" font-family="Syne,sans-serif" font-weight="800">A</text>
+      <text x="206" y="58" fill="#2dd4bf" font-size="13" font-family="Syne,sans-serif" font-weight="800">B</text>
+      <text x="191" y="108" fill="#a78bfa" font-size="8.5" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">P(A ∩ B)</text>
+
+      <!-- símbolo = -->
+      <text x="257" y="62" fill="#4a4a6a" font-size="22" font-family="Syne,sans-serif" font-weight="800" text-anchor="middle">=</text>
+
+      <!-- ── Diagrama 3: P(A ∩ B̄) ── -->
+      <rect x="268" y="5" width="107" height="110" rx="6" fill="none" stroke="#2a2a40" stroke-width="0.8"/>
+      <circle cx="278" cy="55" r="38" fill="rgba(74,158,255,0.22)"/>
+      <!-- recortar intersección con B -->
+      <circle cx="302" cy="55" r="38" fill="#13131f" clip-path="url(#clipA3)"/>
+      <circle cx="278" cy="55" r="38" fill="none" stroke="#4a9eff" stroke-width="1.8"/>
+      <circle cx="302" cy="55" r="38" fill="none" stroke="#2dd4bf" stroke-width="1.8"/>
+      <text x="264" y="58" fill="#4a9eff" font-size="13" font-family="Syne,sans-serif" font-weight="800">A</text>
+      <text x="314" y="58" fill="#2dd4bf" font-size="13" font-family="Syne,sans-serif" font-weight="800">B</text>
+      <text x="321" y="108" fill="#b8ff3c" font-size="8.5" font-family="Space Grotesk,sans-serif" font-weight="700" text-anchor="middle">P(A ∩ B̄)</text>
+    </svg>
+    <div class="venn-card-note">
+      <b>$P(A \cap \bar{B}) = P(A) - P(A \cap B)$</b><br>
+      Tomamos todo $A$ y quitamos la zona de intersección con $B$. Lo que queda es $A$ sin $B$.
+    </div>
+  </div>
+
+  <!-- ══ 11. INDEPENDENCIA · INCOMPATIBILIDAD · DE MORGAN ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--lime)"></div>
+    <span style="color:var(--lime)">11 · Independencia · Incompatibilidad · De Morgan</span>
+  </div>
+  <div class="fcard lime">
+    <div class="fcard-name">Independencia</div>
+    <div class="fcard-expr">$P(A \cap B) = P(A) \cdot P(B)$</div>
+    <div class="fcard-note">$A$ y $B$ son independientes $\Leftrightarrow P(A \mid B) = P(A)$. Que ocurra uno no cambia la prob. del otro.</div>
+  </div>
+  <div class="fcard lime">
+    <div class="fcard-name">Incompatibilidad</div>
+    <div class="fcard-expr">$P(A \cap B) = 0$</div>
+    <div class="fcard-note">No pueden ocurrir a la vez. Entonces $P(A \cup B) = P(A) + P(B)$ (sin restar).</div>
+  </div>
+  <div class="fcard lime">
+    <div class="fcard-name">De Morgan (I)</div>
+    <div class="fcard-expr">$\overline{A \cup B} = \bar{A} \cap \bar{B}$</div>
+    <div class="fcard-note">Complementario de la unión = intersección de los complementarios.</div>
+  </div>
+  <div class="fcard lime">
+    <div class="fcard-name">De Morgan (II)</div>
+    <div class="fcard-expr">$\overline{A \cap B} = \bar{A} \cup \bar{B}$</div>
+    <div class="fcard-note">Complementario de la intersección = unión de los complementarios.</div>
+  </div>
+
+  <!-- ══ 12. TABLA RESUMEN ══ -->
+  <div class="sec-label" style="margin-top:2px">
+    <div class="sec-dot" style="background:var(--text-dim)"></div>
+    <span style="color:var(--text-soft)">12 · Resumen de todas las fórmulas</span>
+  </div>
+  <div class="rtable-card">
+    <div class="rtable-card-title">Tabla resumen</div>
+    <table class="rtable" id="rt1">
+      <tr><th>Fórmula</th><th>Expresión</th><th>Cuándo usarla</th></tr>
+      <tr><td class="col-name">Complementario</td><td class="col-expr">$P(\bar{A})=1-P(A)$</td><td class="col-desc">Lo que no es $A$.</td></tr>
+      <tr><td class="col-name">Unión</td><td class="col-expr">$P(A\cup B)=P(A)+P(B)-P(A\cap B)$</td><td class="col-desc">Al menos uno de los dos.</td></tr>
+      <tr><td class="col-name">Intersección</td><td class="col-expr">$P(A\cap B)=P(A)\cdot P(B\mid A)$</td><td class="col-desc">Los dos a la vez.</td></tr>
+      <tr><td class="col-name">Diferencia</td><td class="col-expr">$P(A-B)=P(A)-P(A\cap B)$</td><td class="col-desc">$A$ sin $B$.</td></tr>
+      <tr><td class="col-name">Condicionada</td><td class="col-expr">$P(A\mid B)=\frac{P(A\cap B)}{P(B)}$</td><td class="col-desc">$A$ sabiendo que ocurrió $B$.</td></tr>
+      <tr class="sep-row"><td colspan="3">Herramientas avanzadas</td></tr>
+      <tr><td class="col-name">Prob. Total</td><td class="col-expr">$P(A)=\sum P(B_i)\cdot P(A\mid B_i)$</td><td class="col-desc">Sumar todos los caminos del árbol hasta $A$.</td></tr>
+      <tr><td class="col-name">Bayes</td><td class="col-expr">$P(B_i\mid A)=\frac{P(B_i)\cdot P(A\mid B_i)}{P(A)}$</td><td class="col-desc">Dado el efecto, calcular la causa.</td></tr>
+      <tr class="sep-row"><td colspan="3">Relaciones especiales</td></tr>
+      <tr><td class="col-name">Independencia</td><td class="col-expr">$P(A\cap B)=P(A)\cdot P(B)$</td><td class="col-desc">$P(A\mid B)=P(A)$.</td></tr>
+      <tr><td class="col-name">Incompatibles</td><td class="col-expr">$P(A\cap B)=0$</td><td class="col-desc">No pueden ocurrir juntos.</td></tr>
+      <tr><td class="col-name">De Morgan I</td><td class="col-expr">$\overline{A\cup B}=\bar{A}\cap\bar{B}$</td><td class="col-desc">Complementario de la unión.</td></tr>
+      <tr><td class="col-name">De Morgan II</td><td class="col-expr">$\overline{A\cap B}=\bar{A}\cup\bar{B}$</td><td class="col-desc">Complementario de la intersección.</td></tr>
+    </table>
+  </div>
+
+  <div class="author-note">
+    <span>Gabriel</span><div class="author-dot"></div>
+    <span>CC BY-NC-SA 4.0</span><div class="author-dot"></div>
+    <span>MatEBAUticas 2026</span>
+  </div>
+
+</div>
+
+<script>
+window.onload = () => {
+  if(window.MathJax) MathJax.typesetPromise([document.body]);
+};
+</script>
+<script data-goatcounter="https://gabrielrogo.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
