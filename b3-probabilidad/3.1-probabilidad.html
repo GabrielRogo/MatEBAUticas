@@ -279,6 +279,116 @@ input[type=range]#ii::-webkit-slider-thumb { border: 2px solid var(--lime); }
   line-height: 1.6;
 }
 
+/* ── BOTÓN PIZARRA ── */
+.btn-pizarra {
+  display: flex; align-items: center; gap: 7px;
+  background: linear-gradient(135deg, #1a0f35 0%, #2d1a5e 100%);
+  border: 1.5px solid var(--purple); border-radius: var(--radius-sm);
+  padding: 10px 16px; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 700;
+  color: var(--purple); transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 12px rgba(167,139,250,0.15); width: 100%; justify-content: center;
+}
+.btn-pizarra:active { transform: scale(0.97); box-shadow: none; }
+.btn-pizarra-sub { font-size: 0.6rem; font-weight: 400; color: rgba(167,139,250,0.6); }
+
+/* ── BOTÓN FORMULARIO ── */
+.btn-formula-wrap {
+  display: flex; gap: 8px;
+}
+.btn-formula {
+  flex: 1; display: flex; align-items: center; gap: 7px; justify-content: center;
+  background: var(--bg3); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 600;
+  color: var(--text-soft); transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.btn-formula:active { background: var(--surface); }
+.btn-formula.open { border-color: var(--teal, #2dd4bf); color: #2dd4bf; background: rgba(45,212,191,0.08); }
+
+/* ── FORMULARIO DESPLEGABLE ── */
+.formulario-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+.formulario-panel.open {
+  max-height: 3000px;
+}
+.formulario-inner {
+  background: var(--bg2); border: 1px solid #2dd4bf;
+  border-radius: var(--radius); padding: 14px 15px;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.form-sec-t {
+  font-family: 'Syne Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding-top: 4px;
+}
+.form-c {
+  border-radius: 9px; padding: 10px 13px; border: 1px solid var(--border);
+  font-size: 0.84rem; line-height: 1.85; color: var(--text); overflow-x: auto;
+}
+.form-c.blue   { background: rgba(74,158,255,0.07);  border-left: 3px solid var(--blue);    }
+.form-c.teal   { background: rgba(45,212,191,0.07);  border-left: 3px solid #2dd4bf;        }
+.form-c.orange { background: rgba(251,146,60,0.07);  border-left: 3px solid var(--orange, #fb923c); }
+.form-c.purple { background: rgba(167,139,250,0.07); border-left: 3px solid var(--purple);  }
+.form-c.lime   { background: var(--lime-dim);        border-left: 3px solid var(--lime);    }
+.form-c-name { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 800; margin-bottom: 5px; }
+.form-c.blue   .form-c-name { color: var(--blue);   }
+.form-c.teal   .form-c-name { color: #2dd4bf;       }
+.form-c.orange .form-c-name { color: #fb923c;       }
+.form-c.purple .form-c-name { color: var(--purple); }
+.form-c.lime   .form-c-name { color: var(--lime);   }
+.form-c-note { font-size: 0.72rem; color: var(--text-soft); line-height: 1.5; margin-top: 5px; }
+.form-link {
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 10px; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); text-decoration: none;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-soft); transition: all 0.15s;
+}
+.form-link:active { background: var(--surface); }
+
+/* ── PIZARRA FULLSCREEN ── */
+.pizarra-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: #0a0a12; flex-direction: column;
+}
+.pizarra-overlay.open { display: flex; }
+.pizarra-topbar {
+  height: 52px; background: rgba(10,10,18,0.98);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; flex-shrink: 0;
+}
+.piz-title { font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--purple); }
+.piz-controls { display: flex; gap: 7px; align-items: center; flex: 1; }
+.btn-piz-color {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.btn-piz-color:active { transform: scale(0.85); }
+.btn-piz-color.active { border-color: white; box-shadow: 0 0 6px rgba(255,255,255,0.4); }
+.btn-piz-sz {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 9px; font-family: 'Syne Mono', monospace; font-size: 0.66rem;
+  color: var(--text-soft); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.btn-piz-sz.active { background: var(--purple-dim); color: var(--purple); border-color: rgba(167,139,250,0.4); }
+.btn-piz-borrar {
+  background: rgba(255,90,90,0.1); border: 1px solid rgba(255,90,90,0.3);
+  border-radius: var(--radius-sm); padding: 7px 12px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 600;
+  color: #ff5a5a; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-left: auto;
+}
+.btn-piz-cerrar {
+  background: var(--purple); border: none; border-radius: var(--radius-sm); padding: 7px 13px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 700;
+  color: var(--bg); cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+#piz-canvas {
+  flex: 1; display: block; width: 100%; height: 100%;
+  background: #0e0e1a; touch-action: none; cursor: crosshair;
+}
+
 /* ── INDEPENDENCIA ── */
 .indep-card {
   background: rgba(184,255,60,0.04);
@@ -361,6 +471,25 @@ input[type=range]#ii::-webkit-slider-thumb { border: 2px solid var(--lime); }
   </div>
   <div id="mode-chip" class="mode-chip">Venn</div>
 </header>
+
+<!-- PIZARRA FULLSCREEN -->
+<div class="pizarra-overlay" id="piz-overlay">
+  <div class="pizarra-topbar">
+    <span class="piz-title">✏️ Pizarra</span>
+    <div class="piz-controls">
+      <button class="btn-piz-color active" style="background:#e8e8f0" onclick="pizColor('#e8e8f0',this)"></button>
+      <button class="btn-piz-color" style="background:#b8ff3c" onclick="pizColor('#b8ff3c',this)"></button>
+      <button class="btn-piz-color" style="background:#4a9eff" onclick="pizColor('#4a9eff',this)"></button>
+      <button class="btn-piz-color" style="background:#a78bfa" onclick="pizColor('#a78bfa',this)"></button>
+      <button class="btn-piz-sz active" onclick="pizSize(3,this)">S</button>
+      <button class="btn-piz-sz" onclick="pizSize(5,this)">M</button>
+      <button class="btn-piz-sz" onclick="pizSize(9,this)">G</button>
+    </div>
+    <button class="btn-piz-borrar" onclick="pizClear()">Borrar</button>
+    <button class="btn-piz-cerrar" onclick="closePiz()">Cerrar ✕</button>
+  </div>
+  <canvas id="piz-canvas"></canvas>
+</div>
 
 <div class="glow-blob"></div>
 
@@ -464,6 +593,41 @@ input[type=range]#ii::-webkit-slider-thumb { border: 2px solid var(--lime); }
     <strong>Sucesos independientes:</strong> A y B son independientes si y solo si:
     <span class="indep-formula">P(A ∩ B) = P(A) · P(B)</span>
   </div>
+
+  <!-- BOTONES PIZARRA + FORMULARIO -->
+  <div class="btn-formula-wrap">
+    <button class="btn-formula" id="btn-formula" onclick="toggleFormulario()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Ver formulario
+    </button>
+  </div>
+
+  <!-- FORMULARIO DESPLEGABLE -->
+  <div class="formulario-panel" id="formulario-panel">
+    <div class="formulario-inner">
+      <div class="form-sec-t" style="color:var(--blue)">Axiomas · Complementario · Unión · Diferencia</div>
+      <div class="form-c blue"><div class="form-c-name">Axiomas</div>$0 \le P(A) \le 1$ · $P(\Omega)=1$ · $P(\bar{A})=1-P(A)$</div>
+      <div class="form-c blue"><div class="form-c-name">Unión</div>$P(A \cup B)=P(A)+P(B)-P(A \cap B)$</div>
+      <div class="form-c blue"><div class="form-c-name">Diferencia</div>$P(A-B)=P(A)-P(A \cap B)$</div>
+      <div class="form-sec-t" style="color:#2dd4bf;margin-top:4px">Intersección · Condicionada</div>
+      <div class="form-c teal"><div class="form-c-name">Regla del producto</div>$P(A \cap B)=P(A)\cdot P(B\mid A)$</div>
+      <div class="form-c teal"><div class="form-c-name">Condicionada</div>$P(A \mid B)=\dfrac{P(A \cap B)}{P(B)}$</div>
+      <div class="form-sec-t" style="color:#fb923c;margin-top:4px">Probabilidad total · Bayes</div>
+      <div class="form-c orange"><div class="form-c-name">Probabilidad total</div>$P(A)=\sum P(B_i)\cdot P(A\mid B_i)$<div class="form-c-note">Suma de los productos de todos los caminos del árbol que terminan en A.</div></div>
+      <div class="form-c purple"><div class="form-c-name">Bayes</div>$P(B_i\mid A)=\dfrac{P(B_i)\cdot P(A\mid B_i)}{P(A)}$<div class="form-c-note">Dar la vuelta a la condicionada.</div></div>
+      <div class="form-sec-t" style="color:var(--lime);margin-top:4px">Independencia · De Morgan</div>
+      <div class="form-c lime"><div class="form-c-name">Independencia</div>$P(A \cap B)=P(A)\cdot P(B)$<div class="form-c-note">$P(A\mid B)=P(A)$</div></div>
+      <div class="form-c lime"><div class="form-c-name">De Morgan I</div>$\overline{A \cup B}=\bar{A} \cap \bar{B}$</div>
+      <div class="form-c lime"><div class="form-c-name">De Morgan II</div>$\overline{A \cap B}=\bar{A} \cup \bar{B}$</div>
+      <a class="form-link" href="3.0-formulario-probabilidad.html">Ver formulario completo con diagramas →</a>
+    </div>
+  </div>
+
+  <!-- BOTÓN PIZARRA -->
+  <button class="btn-pizarra" onclick="openPiz()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Pizarra táctil
+  </button>
 
   <div class="author-note">
     <span>Gabriel</span>
@@ -754,6 +918,79 @@ function endLabel(g,x,y,txt,color) {
 //  INICIO
 // ─────────────────────────────────────
 refresh();
+
+// ─────────────────────────────────────
+//  PIZARRA FULLSCREEN
+// ─────────────────────────────────────
+let pizDrawing=false,pizLastX=0,pizLastY=0,pizColor_='#e8e8f0',pizSize_=3,pizReady=false;
+let pizC=null,pizCtx_=null;
+
+function initPiz(){
+  pizC=document.getElementById('piz-canvas');
+  pizCtx_=pizC.getContext('2d');
+  resizePiz();
+  window.addEventListener('resize',resizePiz);
+  function pos(e){const r=pizC.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+  function start(e){e.preventDefault();pizDrawing=true;const p=pos(e);pizLastX=p.x;pizLastY=p.y;}
+  function move(e){
+    if(!pizDrawing)return;e.preventDefault();
+    const p=pos(e);
+    pizCtx_.beginPath();pizCtx_.moveTo(pizLastX,pizLastY);pizCtx_.lineTo(p.x,p.y);
+    pizCtx_.strokeStyle=pizColor_;pizCtx_.lineWidth=pizSize_;
+    pizCtx_.lineCap='round';pizCtx_.lineJoin='round';pizCtx_.stroke();
+    pizLastX=p.x;pizLastY=p.y;
+  }
+  function stop(){pizDrawing=false;}
+  pizC.addEventListener('mousedown',start);pizC.addEventListener('mousemove',move);
+  pizC.addEventListener('mouseup',stop);pizC.addEventListener('mouseleave',stop);
+  pizC.addEventListener('touchstart',start,{passive:false});
+  pizC.addEventListener('touchmove',move,{passive:false});
+  pizC.addEventListener('touchend',stop);
+  pizReady=true;
+}
+function resizePiz(){
+  if(!pizC)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=window.innerWidth,H=window.innerHeight-52;
+  pizC.style.width=W+'px';pizC.style.height=H+'px';
+  pizC.width=W*dpr;pizC.height=H*dpr;
+  pizCtx_.scale(dpr,dpr);
+  pizCtx_.fillStyle='#0e0e1a';pizCtx_.fillRect(0,0,W,H);
+}
+function openPiz(){
+  document.getElementById('piz-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(!pizReady)initPiz();
+}
+function closePiz(){
+  document.getElementById('piz-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function pizClear(){
+  if(!pizCtx_)return;
+  pizCtx_.fillStyle='#0e0e1a';
+  pizCtx_.fillRect(0,0,pizC.width/(window.devicePixelRatio||1),pizC.height/(window.devicePixelRatio||1));
+}
+function pizColor(col,btn){pizColor_=col;document.querySelectorAll('.btn-piz-color').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function pizSize(sz,btn){pizSize_=sz;document.querySelectorAll('.btn-piz-sz').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+// ─────────────────────────────────────
+//  FORMULARIO DESPLEGABLE
+// ─────────────────────────────────────
+let formularioOpen=false;
+function toggleFormulario(){
+  formularioOpen=!formularioOpen;
+  const panel=document.getElementById('formulario-panel');
+  const btn=document.getElementById('btn-formula');
+  if(formularioOpen){
+    panel.classList.add('open');btn.classList.add('open');
+    btn.innerHTML=btn.innerHTML.replace('Ver formulario','Ocultar formulario');
+    if(window.MathJax)MathJax.typesetPromise([panel]);
+  }else{
+    panel.classList.remove('open');btn.classList.remove('open');
+    btn.innerHTML=btn.innerHTML.replace('Ocultar formulario','Ver formulario');
+  }
+}
 </script>
 <script data-goatcounter="https://gabrielrogo.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
