@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Distribución Binomial · MatEBAUticas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
+    options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2a;--surface:#1e1e30;--border:#2a2a40;
+  --lime:#b8ff3c;--lime-dim:rgba(184,255,60,0.10);--lime-glow:rgba(184,255,60,0.22);
+  --text:#e8e8f0;--text-soft:#7a7a9a;--text-dim:#4a4a6a;
+  --blue:#4a9eff;--blue-dim:rgba(74,158,255,0.10);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.10);
+  --teal:#2dd4bf;--orange:#fb923c;--red:#ff5a5a;
+  --radius:16px;--radius-sm:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.6}
+.glow-blob{position:fixed;width:420px;height:420px;background:radial-gradient(circle,rgba(184,255,60,.05) 0%,transparent 70%);top:-100px;right:-120px;border-radius:50%;pointer-events:none;z-index:0}
+
+/* ── HEADER ── */
+.module-header{position:sticky;top:0;z-index:100;background:rgba(13,13,20,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 18px;height:56px;display:flex;align-items:center;gap:14px}
+.btn-back{width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text-soft);font-size:1rem;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.btn-back:active{background:var(--bg3)}
+.module-header-info{flex:1;overflow:hidden}
+.module-header-tag{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;display:block}
+.module-header-title{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.mode-chip{font-family:'Syne Mono',monospace;font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(74,158,255,.25);white-space:nowrap;flex-shrink:0}
+
+/* ── TABS ── */
+.tabs-wrap{padding:14px 18px 12px;position:sticky;top:56px;z-index:90;background:var(--bg);border-bottom:1px solid var(--border)}
+.tabs-label{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.tabs-row{display:flex;gap:6px}
+.tab-btn{flex:1;height:44px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.tab-btn:active{transform:scale(.95)}
+.tab-num{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text-dim);letter-spacing:-.02em}
+.tab-btn.active{border-color:var(--blue);background:var(--blue-dim)}
+.tab-btn.active .tab-num{color:var(--blue)}
+.tab-btn.solved{border-color:rgba(184,255,60,.35);background:var(--lime-dim)}
+.tab-btn.solved .tab-num{color:var(--lime)}
+.tab-btn.active.solved{border-color:var(--lime)}
+
+/* ── LAYOUT ── */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding-bottom:48px}
+.page-content{padding:20px 18px 0;display:flex;flex-direction:column;gap:14px;animation:fadeUp .3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PROBLEMA HEADER ── */
+.prob-header{display:flex;align-items:flex-start;gap:12px}
+.prob-num-badge{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(74,158,255,.2);border-radius:var(--radius-sm);width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prob-meta{flex:1}
+.prob-type-tag{font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+.prob-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-.01em;line-height:1.3}
+
+/* ── CONTEXTO CARD ── */
+.contexto-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:var(--radius);padding:16px 18px}
+.contexto-tag{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--orange);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:block}
+.contexto-text{font-size:.88rem;line-height:1.78;color:var(--text-soft)}
+.contexto-text strong{color:var(--text);font-weight:600}
+.contexto-text em{color:var(--teal);font-style:normal;font-weight:600}
+
+/* ── ACTIONS BAR ── */
+.actions-bar{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.btn-pizarra{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#1a0f35 0%,#2d1a5e 100%);border:1.5px solid var(--purple);border-radius:var(--radius-sm);padding:10px 16px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;color:var(--purple);transition:all .15s;-webkit-tap-highlight-color:transparent;box-shadow:0 0 12px rgba(167,139,250,.15)}
+.btn-pizarra:active{transform:scale(.97);box-shadow:none}
+.btn-pizarra svg{flex-shrink:0}
+.btn-pizarra-label{display:flex;flex-direction:column;line-height:1.1}
+.btn-pizarra-sub{font-size:.6rem;font-weight:400;color:rgba(167,139,250,.6);margin-top:1px}
+.btn-formula{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-soft);transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn-formula:active{background:var(--surface)}
+.btn-formula.open{border-color:var(--teal);color:var(--teal);background:rgba(45,212,191,.08)}
+
+/* ── FORMULARIO PANEL ── */
+.formulario-panel{max-height:0;overflow:hidden;transition:max-height .4s ease;border-radius:var(--radius);border:0px solid var(--border)}
+.formulario-panel.open{max-height:3000px;border:1px solid var(--teal);overflow:visible}
+.formulario-inner{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.form-sec-title{font-family:'Syne Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;padding-top:4px}
+.form-card{border-radius:10px;padding:11px 14px;border:1px solid var(--border)}
+.form-card.blue{background:rgba(74,158,255,.07);border-left:3px solid var(--blue)}
+.form-card.teal{background:rgba(45,212,191,.07);border-left:3px solid var(--teal)}
+.form-card.orange{background:rgba(251,146,60,.07);border-left:3px solid var(--orange)}
+.form-card.purple{background:rgba(167,139,250,.07);border-left:3px solid var(--purple)}
+.form-card.lime{background:rgba(184,255,60,.07);border-left:3px solid var(--lime)}
+.form-name{font-family:'Syne',sans-serif;font-size:.76rem;font-weight:800;margin-bottom:5px;letter-spacing:-.01em}
+.form-card.blue .form-name{color:var(--blue)}
+.form-card.teal .form-name{color:var(--teal)}
+.form-card.orange .form-name{color:var(--orange)}
+.form-card.purple .form-name{color:var(--purple)}
+.form-card.lime .form-name{color:var(--lime)}
+.form-expr{font-size:.82rem;line-height:1.8;color:var(--text);overflow-x:auto}
+.form-note{font-size:.72rem;color:var(--text-soft);line-height:1.5;margin-top:4px}
+.form-note b{color:var(--text);font-weight:600}
+
+/* ── APARTADOS ── */
+.apartados-wrap{display:flex;flex-direction:column;gap:12px}
+.apartado-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.apartado-card.solved{border-color:rgba(184,255,60,.25)}
+.apartado-head{padding:14px 16px 10px}
+.apartado-label{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.apartado-label .check-icon{color:var(--lime);display:none}
+.apartado-card.solved .apartado-label .check-icon{display:inline}
+.apartado-q{font-size:.92rem;line-height:1.65;color:var(--text)}
+.opts-list{padding:0 12px 14px;display:flex;flex-direction:column;gap:7px}
+.opt-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;text-align:left;font-family:'Space Grotesk',sans-serif;font-size:.86rem;color:var(--text-soft);display:flex;align-items:center;gap:10px;min-height:52px;transition:all .15s;-webkit-tap-highlight-color:transparent;width:100%}
+.opt-btn:active:not(:disabled){transform:scale(.98)}
+.opt-btn:disabled{opacity:.55;cursor:default}
+.opt-letter{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Syne Mono',monospace;font-size:.62rem;font-weight:700;color:var(--text-dim);flex-shrink:0;transition:all .15s}
+.opt-btn.correct{border-color:rgba(184,255,60,.4);background:var(--lime-dim);color:var(--lime)}
+.opt-btn.correct .opt-letter{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.opt-btn.wrong{border-color:rgba(255,90,90,.3);background:rgba(255,90,90,.06);color:var(--red)}
+.opt-btn.wrong .opt-letter{border-color:rgba(255,90,90,.4);color:var(--red)}
+.feedback{margin:0 12px 10px;padding:9px 13px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:500;display:none}
+.feedback.correct{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(184,255,60,.2)}
+.feedback.wrong{background:rgba(255,90,90,.08);color:var(--red);border:1px solid rgba(255,90,90,.2)}
+
+/* ── PANEL DESARROLLO ── */
+.dev-panel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.dev-panel-header{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.dev-panel-title{font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+.dev-dot{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.dev-dot.active{background:var(--lime);box-shadow:0 0 6px var(--lime-glow)}
+.dev-entries{padding:8px;display:flex;flex-direction:column;gap:6px;max-height:800px;overflow-y:auto}
+.dev-empty{padding:22px 16px;text-align:center;font-size:.8rem;color:var(--text-dim)}
+.dev-entry{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:.84rem;line-height:1.8;color:var(--text-soft);animation:fadeUp .3s ease both}
+.dev-entry b{color:var(--text);font-weight:600}
+.dev-entry .hl{color:var(--lime);font-weight:700}
+.dev-entry .warn{color:var(--orange);font-weight:600}
+.dev-entry .sym{color:var(--teal);font-weight:700;font-family:'Syne Mono',monospace}
+
+/* ── PIZARRA ── */
+.pizarra-overlay{display:none;position:fixed;inset:0;z-index:300;background:#0a0a12;flex-direction:column}
+.pizarra-overlay.open{display:flex}
+.pizarra-topbar{height:52px;background:rgba(10,10,18,.98);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0;flex-wrap:wrap}
+.pizarra-title{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--purple);margin-right:4px}
+.pizarra-controls{display:flex;gap:7px;align-items:center;flex:1;flex-wrap:wrap}
+.btn-color{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.btn-color:active{transform:scale(.85)}
+.btn-color.active{border-color:white;box-shadow:0 0 6px rgba(255,255,255,.4)}
+.btn-size{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-family:'Syne Mono',monospace;font-size:.68rem;color:var(--text-soft);cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:34px;text-align:center}
+.btn-size.active{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.4)}
+.btn-borrar{background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.3);border-radius:var(--radius-sm);padding:7px 13px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;color:var(--red);cursor:pointer;-webkit-tap-highlight-color:transparent;margin-left:auto}
+.btn-borrar:active{opacity:.7}
+.btn-cerrar-piz{background:var(--purple);border:none;border-radius:var(--radius-sm);padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;color:var(--bg);cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.btn-cerrar-piz:active{opacity:.85}
+#pizarra-canvas{flex:1;display:block;width:100%;height:100%;background:#0e0e1a;touch-action:none;cursor:crosshair}
+
+/* ── AUTHOR NOTE ── */
+.author-note{padding:20px 18px 0;font-size:.7rem;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+.author-dot{width:3px;height:3px;border-radius:50%;background:var(--border)}
+</style>
+</head>
+<body>
+<div class="glow-blob"></div>
+
+<header class="module-header">
+  <a class="btn-back" href="../index.html">←</a>
+  <div class="module-header-info">
+    <span class="module-header-tag">Bloque 3 · Probabilidad</span>
+    <span class="module-header-title">Distribución Binomial</span>
+  </div>
+  <div class="mode-chip" id="header-chip">P 1/5</div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs-label">Selecciona un problema</div>
+  <div class="tabs-row" id="tabs-row"></div>
+</div>
+
+<div class="pizarra-overlay" id="pizarra-overlay">
+  <div class="pizarra-topbar">
+    <span class="pizarra-title">✏️ Pizarra</span>
+    <div class="pizarra-controls">
+      <button class="btn-color active" style="background:#e8e8f0" onclick="setColor('#e8e8f0',this)"></button>
+      <button class="btn-color" style="background:#b8ff3c" onclick="setColor('#b8ff3c',this)"></button>
+      <button class="btn-color" style="background:#4a9eff" onclick="setColor('#4a9eff',this)"></button>
+      <button class="btn-color" style="background:#a78bfa" onclick="setColor('#a78bfa',this)"></button>
+      <button class="btn-size active" onclick="setSize(3,this)">S</button>
+      <button class="btn-size" onclick="setSize(5,this)">M</button>
+      <button class="btn-size" onclick="setSize(9,this)">G</button>
+    </div>
+    <button class="btn-borrar" onclick="clearCanvas()">Borrar</button>
+    <button class="btn-cerrar-piz" onclick="closePizarra()">Cerrar ✕</button>
+  </div>
+  <canvas id="pizarra-canvas"></canvas>
+</div>
+
+<div class="app">
+  <div class="page-content" id="page-content"></div>
+  <div class="author-note">
+    <span>Gabriel</span><div class="author-dot"></div>
+    <span>CC BY-NC-SA 4.0</span><div class="author-dot"></div>
+    <span>MatEBAUticas 2026</span>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  FORMULARIO BINOMIAL
+// ══════════════════════════════════════════
+function formularioHTML() {
+  return `<div class="formulario-inner">
+    <div class="form-sec-title" style="color:var(--blue)">Fórmula de la distribución binomial</div>
+    <div class="form-card blue">
+      <div class="form-name">Probabilidad de exactamente $k$ éxitos</div>
+      <div class="form-expr">$$P(X=k)=\\binom{n}{k}\\,p^k\\,(1-p)^{n-k}$$</div>
+      <div class="form-note">
+        <b>$n$</b> = nº de repeticiones del experimento &nbsp;·&nbsp;
+        <b>$p$</b> = probabilidad de éxito en cada repetición &nbsp;·&nbsp;
+        <b>$k$</b> = nº de éxitos que queremos calcular
+      </div>
+    </div>
+    <div class="form-sec-title" style="color:var(--teal);margin-top:4px">Número combinatorio $\\binom{n}{k}$</div>
+    <div class="form-card teal">
+      <div class="form-name">Definición mediante factoriales</div>
+      <div class="form-expr">$$\\binom{n}{k}=\\frac{n!}{k!\\,(n-k)!}$$</div>
+      <div class="form-note">
+        Recuerda: $n! = n\\cdot(n-1)\\cdot(n-2)\\cdots2\\cdot1$ &nbsp;·&nbsp; Por convenio, $0!=1$
+      </div>
+    </div>
+    <div class="form-sec-title" style="color:var(--orange);margin-top:4px">Acumuladas frecuentes en EBAU</div>
+    <div class="form-card orange">
+      <div class="form-name">«Al menos $k$» / «como mínimo $k$»</div>
+      <div class="form-expr">$P(X \\geq k) = 1 - P(X \\leq k-1)$</div>
+    </div>
+    <div class="form-card orange">
+      <div class="form-name">«A lo sumo $k$» / «como máximo $k$»</div>
+      <div class="form-expr">$P(X \\leq k) = P(X=0)+P(X=1)+\\cdots+P(X=k)$</div>
+    </div>
+    <div class="form-sec-title" style="color:var(--lime);margin-top:4px">Ejemplo resuelto</div>
+    <div class="form-card lime">
+      <div class="form-name">Se lanza una moneda 4 veces. ¿Prob. de exactamente 3 caras?</div>
+      <div class="form-expr">
+        $n=4,\\; k=3,\\; p=0{,}5$<br>
+        $\\displaystyle\\binom{4}{3}=\\frac{4!}{3!\\cdot1!}=\\frac{24}{6}=4$<br>
+        $P(X=3)=4\\cdot(0{,}5)^3\\cdot(0{,}5)^1=4\\cdot0{,}125\\cdot0{,}5=\\mathbf{0{,}25}$
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  DATOS DE LOS PROBLEMAS
+// ══════════════════════════════════════════
+const problems = [
+
+// ───────────────────────────────────────────
+// P1 · CONTROL DE CALIDAD
+// ───────────────────────────────────────────
+{id:1, tipo:"$P(X=k)$ · exactamente", titulo:"Control de calidad en fábrica",
+contexto:`Una fábrica de componentes electrónicos sabe, por su historial de producción, que <strong>el 10% de las piezas fabricadas presenta algún defecto menor</strong> que no impide su funcionamiento pero que puede ser reclamado por el cliente. Un inspector de calidad toma <strong>una muestra de 5 piezas</strong> al azar de la línea de producción para realizar un control rutinario. Se supone que las piezas son independientes entre sí y que la proporción de defectuosas se mantiene estable.`,
+apartados:[
+  {letra:"a",
+   pregunta:"¿Cuál es la probabilidad de que <strong>exactamente 1</strong> de las 5 piezas sea defectuosa?",
+   opciones:[
+     "$P(X=1)=5\\cdot(0{,}1)^1\\cdot(0{,}9)^4\\approx0{,}3281$",
+     "$P(X=1)=(0{,}1)^1\\cdot(0{,}9)^4\\approx0{,}0656$",
+     "$P(X=1)=5\\cdot(0{,}1)^1\\cdot(0{,}9)^5\\approx0{,}2953$"
+   ],
+   correcta:0,
+   desarrollo:`<b>Identificación:</b> $X\\sim B(5,\\,0{,}1)$. Buscamos $P(X=1)$.<br>
+$$P(X=1)=\\binom{5}{1}(0{,}1)^1(0{,}9)^4=5\\cdot0{,}1\\cdot0{,}6561=\\class{hl}{0{,}3281}$$
+<span class="warn">⚠ Error frecuente:</span> olvidar el combinatorio $\\binom{5}{1}=5$. Sin él se obtiene solo una de las cinco formas posibles de tener 1 defectuosa.`},
+  {letra:"b",
+   pregunta:"¿Cuál es la probabilidad de que <strong>ninguna</strong> pieza sea defectuosa?",
+   opciones:[
+     "$P(X=0)=(0{,}9)^5\\approx0{,}5905$",
+     "$P(X=0)=(0{,}1)^5\\approx0{,}00001$",
+     "$P(X=0)=1-(0{,}9)^5\\approx0{,}4095$"
+   ],
+   correcta:0,
+   desarrollo:`$$P(X=0)=\\binom{5}{0}(0{,}1)^0(0{,}9)^5=1\\cdot1\\cdot0{,}9^5=\\class{hl}{0{,}5905}$$
+<span class="sym">k=0</span>: el combinatorio $\\binom{5}{0}=1$ y $(0{,}1)^0=1$, así que solo queda $(0{,}9)^5$.`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que <strong>al menos 1</strong> pieza sea defectuosa?",
+   opciones:[
+     "$P(X\\geq1)=1-(0{,}9)^5\\approx0{,}4095$",
+     "$P(X\\geq1)=(0{,}1)^1\\cdot(0{,}9)^4\\approx0{,}0656$",
+     "$P(X\\geq1)=0{,}3281+0{,}0729+\\cdots\\approx0{,}9$"
+   ],
+   correcta:0,
+   desarrollo:`«Al menos 1» = complementario de «ninguna»:<br>
+$$P(X\\geq1)=1-P(X=0)=1-0{,}5905=\\class{hl}{0{,}4095}$$
+Este truco evita sumar $P(X=1)+P(X=2)+P(X=3)+P(X=4)+P(X=5)$.`}
+]},
+
+// ───────────────────────────────────────────
+// P2 · RESPUESTAS AL AZAR EN UN TEST
+// ───────────────────────────────────────────
+{id:2, tipo:"$P(X\\leq k)$ · a lo sumo", titulo:"Test de opción múltiple",
+contexto:`Un alumno llega a un examen tipo test <strong>completamente sin estudiar</strong>. El examen consta de <strong>4 preguntas independientes</strong>, cada una con <strong>3 opciones</strong> de respuesta de las que solo una es correcta. El alumno contesta al azar en todas las preguntas. El examen no tiene penalización por respuesta incorrecta.`,
+apartados:[
+  {letra:"a",
+   pregunta:"¿Cuál es la probabilidad de que acierte <strong>exactamente 2</strong> preguntas?",
+   opciones:[
+     "$P(X=2)=6\\cdot\\left(\\tfrac{1}{3}\\right)^2\\cdot\\left(\\tfrac{2}{3}\\right)^2=\\tfrac{24}{81}\\approx0{,}2963$",
+     "$P(X=2)=\\left(\\tfrac{1}{3}\\right)^2\\cdot\\left(\\tfrac{2}{3}\\right)^2=\\tfrac{4}{81}\\approx0{,}0494$",
+     "$P(X=2)=4\\cdot\\left(\\tfrac{1}{3}\\right)^2\\cdot\\left(\\tfrac{2}{3}\\right)^2=\\tfrac{16}{81}\\approx0{,}1975$"
+   ],
+   correcta:0,
+   desarrollo:`$X\\sim B\\!\\left(4,\\,\\tfrac{1}{3}\\right)$. Combinatorio: $\\binom{4}{2}=\\dfrac{4!}{2!\\cdot2!}=6$.<br>
+$$P(X=2)=6\\cdot\\left(\\frac{1}{3}\\right)^2\\!\\cdot\\left(\\frac{2}{3}\\right)^2=6\\cdot\\frac{1}{9}\\cdot\\frac{4}{9}=\\frac{24}{81}\\approx\\class{hl}{0{,}2963}$$
+<span class="warn">⚠</span> $\\binom{4}{2}=6$, no 4. Confundir el combinatorio con $n$ es un error habitual.`},
+  {letra:"b",
+   pregunta:"¿Cuál es la probabilidad de que acierte <strong>a lo sumo 1</strong> pregunta?",
+   opciones:[
+     "$P(X\\leq1)=P(X=0)+P(X=1)=\\tfrac{16}{81}+\\tfrac{32}{81}=\\tfrac{48}{81}\\approx0{,}5926$",
+     "$P(X\\leq1)=P(X=1)=\\tfrac{32}{81}\\approx0{,}3951$",
+     "$P(X\\leq1)=1-P(X=1)\\approx0{,}6049$"
+   ],
+   correcta:0,
+   desarrollo:`«A lo sumo 1» significa $X\\leq1$: hay que sumar los casos $k=0$ y $k=1$.<br>
+$P(X=0)=\\binom{4}{0}\\left(\\tfrac{1}{3}\\right)^0\\!\\left(\\tfrac{2}{3}\\right)^4=\\tfrac{16}{81}$<br>
+$P(X=1)=\\binom{4}{1}\\left(\\tfrac{1}{3}\\right)^1\\!\\left(\\tfrac{2}{3}\\right)^3=4\\cdot\\tfrac{1}{3}\\cdot\\tfrac{8}{27}=\\tfrac{32}{81}$<br>
+$$P(X\\leq1)=\\frac{16}{81}+\\frac{32}{81}=\\frac{48}{81}\\approx\\class{hl}{0{,}5926}$$`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que apruebe, es decir, de que acierte <strong>por lo menos 3</strong> preguntas?",
+   opciones:[
+     "$P(X\\geq3)=P(X=3)+P(X=4)=\\tfrac{8}{81}+\\tfrac{1}{81}=\\tfrac{9}{81}\\approx0{,}1111$",
+     "$P(X\\geq3)=1-P(X=3)\\approx0{,}8765$",
+     "$P(X\\geq3)=P(X=3)=\\tfrac{8}{81}\\approx0{,}0988$"
+   ],
+   correcta:0,
+   desarrollo:`«Por lo menos 3» = $X\\geq3 = P(X=3)+P(X=4)$:<br>
+$P(X=3)=\\binom{4}{3}\\left(\\tfrac{1}{3}\\right)^3\\!\\left(\\tfrac{2}{3}\\right)^1=4\\cdot\\tfrac{1}{27}\\cdot\\tfrac{2}{3}=\\tfrac{8}{81}$<br>
+$P(X=4)=\\binom{4}{4}\\left(\\tfrac{1}{3}\\right)^4\\!\\left(\\tfrac{2}{3}\\right)^0=1\\cdot\\tfrac{1}{81}\\cdot1=\\tfrac{1}{81}$<br>
+$$P(X\\geq3)=\\frac{8}{81}+\\frac{1}{81}=\\frac{9}{81}=\\class{hl}{\\frac{1}{9}\\approx0{,}1111}$$
+<span class="warn">⚠</span> No olvides incluir $P(X=4)$: también se aprueba sacando todo bien.`}
+]},
+
+// ───────────────────────────────────────────
+// P3 · TIROS LIBRES EN BALONCESTO
+// ───────────────────────────────────────────
+{id:3, tipo:"$P(X\\geq k)$ · complementario", titulo:"Tiros libres en baloncesto",
+contexto:`Una jugadora de baloncesto tiene una probabilidad de <strong>0,7 de encestar cada tiro libre</strong>. En los últimos segundos del partido le pitan <strong>4 faltas personales</strong> seguidas, por lo que debe lanzar <strong>4 tiros libres consecutivos</strong>. Se asume que cada lanzamiento es independiente de los anteriores y que la probabilidad de acierto no varía con la presión del partido.`,
+apartados:[
+  {letra:"a",
+   pregunta:"¿Cuál es la probabilidad de que enceste <strong>exactamente 3</strong> de los 4 tiros?",
+   opciones:[
+     "$P(X=3)=4\\cdot(0{,}7)^3\\cdot(0{,}3)^1\\approx0{,}4116$",
+     "$P(X=3)=(0{,}7)^3\\cdot(0{,}3)^1\\approx0{,}1029$",
+     "$P(X=3)=4\\cdot(0{,}7)^3\\cdot(0{,}3)^0\\approx1{,}372$"
+   ],
+   correcta:0,
+   desarrollo:`$X\\sim B(4,\\,0{,}7)$. $\\binom{4}{3}=4$.<br>
+$$P(X=3)=4\\cdot(0{,}7)^3\\cdot(0{,}3)^1=4\\cdot0{,}343\\cdot0{,}3=\\class{hl}{0{,}4116}$$`},
+  {letra:"b",
+   pregunta:"¿Cuál es la probabilidad de que enceste <strong>más de 2</strong> tiros (es decir, 3 o 4)?",
+   opciones:[
+     "$P(X>2)=P(X=3)+P(X=4)\\approx0{,}4116+0{,}2401=0{,}6517$",
+     "$P(X>2)=1-P(X=2)\\approx1-0{,}2646=0{,}7354$",
+     "$P(X>2)=P(X=3)\\approx0{,}4116$"
+   ],
+   correcta:0,
+   desarrollo:`«Más de 2» equivale a $X>2$, es decir $X\\geq3$: solo los casos $k=3$ y $k=4$.<br>
+$P(X=3)=0{,}4116$ (calculado antes).<br>
+$P(X=4)=\\binom{4}{4}(0{,}7)^4(0{,}3)^0=1\\cdot0{,}2401\\cdot1=0{,}2401$<br>
+$$P(X>2)=0{,}4116+0{,}2401=\\class{hl}{0{,}6517}$$
+<span class="warn">⚠</span> «Más de 2» no incluye $k=2$; «al menos 2» sí lo incluiría.`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que enceste <strong>como mínimo 1</strong> tiro?",
+   opciones:[
+     "$P(X\\geq1)=1-(0{,}3)^4\\approx0{,}9919$",
+     "$P(X\\geq1)=1-(0{,}7)^4\\approx0{,}7599$",
+     "$P(X\\geq1)=4\\cdot(0{,}7)^1\\cdot(0{,}3)^3\\approx0{,}0756$"
+   ],
+   correcta:0,
+   desarrollo:`«Como mínimo 1» = complementario de «ningún acierto»:<br>
+$P(X=0)=\\binom{4}{0}(0{,}7)^0(0{,}3)^4=1\\cdot1\\cdot0{,}0081=0{,}0081$<br>
+$$P(X\\geq1)=1-P(X=0)=1-0{,}0081=\\class{hl}{0{,}9919}$$
+<span class="warn">⚠ Opción B:</span> usa $1-(0{,}7)^4$, que sería $P(X\\geq1)$ si $p=0{,}3$, con los papeles de éxito y fracaso invertidos.`}
+]},
+
+// ───────────────────────────────────────────
+// P4 · GERMINACIÓN DE SEMILLAS
+// ───────────────────────────────────────────
+{id:4, tipo:"$P(X=k)$ y $P(X\\leq k)$ mixto", titulo:"Germinación de semillas",
+contexto:`Un vivero comercializa bolsas de semillas de albahaca con una <strong>tasa de germinación del 80%</strong>. Un cliente compra una bolsa y planta <strong>5 semillas</strong> en macetas individuales. Cada semilla germina de forma independiente. El cliente considera que el experimento ha sido un éxito si germinan al menos 4 de las 5 semillas.`,
+apartados:[
+  {letra:"a",
+   pregunta:"¿Cuál es la probabilidad de que germinen <strong>exactamente 4</strong> semillas?",
+   opciones:[
+     "$P(X=4)=5\\cdot(0{,}8)^4\\cdot(0{,}2)^1\\approx0{,}4096$",
+     "$P(X=4)=4\\cdot(0{,}8)^4\\cdot(0{,}2)^1\\approx0{,}3277$",
+     "$P(X=4)=5\\cdot(0{,}8)^4\\cdot(0{,}2)^0\\approx2{,}048$"
+   ],
+   correcta:0,
+   desarrollo:`$X\\sim B(5,\\,0{,}8)$. $\\binom{5}{4}=\\dfrac{5!}{4!\\cdot1!}=5$.<br>
+$$P(X=4)=5\\cdot(0{,}8)^4\\cdot(0{,}2)^1=5\\cdot0{,}4096\\cdot0{,}2=\\class{hl}{0{,}4096}$$`},
+  {letra:"b",
+   pregunta:"¿Cuál es la probabilidad de que el experimento sea un éxito, es decir, que germinen <strong>al menos 4</strong>?",
+   opciones:[
+     "$P(X\\geq4)=P(X=4)+P(X=5)\\approx0{,}4096+0{,}3277=0{,}7373$",
+     "$P(X\\geq4)=P(X=4)\\approx0{,}4096$",
+     "$P(X\\geq4)=1-P(X=4)\\approx0{,}5904$"
+   ],
+   correcta:0,
+   desarrollo:`«Al menos 4» = $P(X=4)+P(X=5)$:<br>
+$P(X=4)=0{,}4096$ (calculado antes).<br>
+$P(X=5)=\\binom{5}{5}(0{,}8)^5(0{,}2)^0=1\\cdot0{,}32768\\cdot1\\approx0{,}3277$<br>
+$$P(X\\geq4)=0{,}4096+0{,}3277=\\class{hl}{0{,}7373}$$`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que germinen <strong>a lo sumo 3</strong> semillas?",
+   opciones:[
+     "$P(X\\leq3)=1-P(X\\geq4)\\approx1-0{,}7373=0{,}2627$",
+     "$P(X\\leq3)=P(X=3)=10\\cdot(0{,}8)^3\\cdot(0{,}2)^2\\approx0{,}2048$",
+     "$P(X\\leq3)=1-P(X=3)\\approx0{,}7952$"
+   ],
+   correcta:0,
+   desarrollo:`«A lo sumo 3» = $P(X\\leq3)$. Usar el complementario es más eficiente:<br>
+$$P(X\\leq3)=1-P(X\\geq4)=1-0{,}7373=\\class{hl}{0{,}2627}$$
+<span class="warn">⚠ Opción B:</span> solo calcula $P(X=3)$, pero «a lo sumo 3» incluye también $k=0,1,2$.`}
+]},
+
+// ───────────────────────────────────────────
+// P5 · EMAILS DE PHISHING
+// ───────────────────────────────────────────
+{id:5, tipo:"$P(X=k)$ · $P(X\\geq k)$ · complementario", titulo:"Detección de phishing",
+contexto:`El departamento de ciberseguridad de una empresa estima que <strong>el 25% de los emails recibidos en la bandeja corporativa son intentos de phishing</strong>. Un empleado revisa de forma aleatoria <strong>4 emails</strong> de su bandeja de entrada. Se asume que cada email es independiente y que la proporción de phishing se mantiene constante.`,
+apartados:[
+  {letra:"a",
+   pregunta:"¿Cuál es la probabilidad de que <strong>ninguno</strong> de los 4 emails sea phishing?",
+   opciones:[
+     "$P(X=0)=(0{,}75)^4\\approx0{,}3164$",
+     "$P(X=0)=(0{,}25)^4\\approx0{,}0039$",
+     "$P(X=0)=1-(0{,}25)^4\\approx0{,}9961$"
+   ],
+   correcta:0,
+   desarrollo:`$X\\sim B(4,\\,0{,}25)$.<br>
+$$P(X=0)=\\binom{4}{0}(0{,}25)^0(0{,}75)^4=1\\cdot1\\cdot0{,}75^4=\\class{hl}{0{,}3164}$$
+El éxito aquí es «el email es phishing» con $p=0{,}25$; el fracaso —«no es phishing»— tiene probabilidad $1-0{,}25=0{,}75$.`},
+  {letra:"b",
+   pregunta:"¿Cuál es la probabilidad de que <strong>exactamente 2</strong> de los 4 emails sean phishing?",
+   opciones:[
+     "$P(X=2)=6\\cdot(0{,}25)^2\\cdot(0{,}75)^2\\approx0{,}2109$",
+     "$P(X=2)=2\\cdot(0{,}25)^2\\cdot(0{,}75)^2\\approx0{,}0703$",
+     "$P(X=2)=6\\cdot(0{,}25)^2\\cdot(0{,}75)^4\\approx0{,}1186$"
+   ],
+   correcta:0,
+   desarrollo:`$\\binom{4}{2}=\\dfrac{4!}{2!\\cdot2!}=6$.<br>
+$$P(X=2)=6\\cdot(0{,}25)^2\\cdot(0{,}75)^2=6\\cdot0{,}0625\\cdot0{,}5625=\\class{hl}{0{,}2109}$$
+<span class="warn">⚠ Opción C:</span> usa $(0{,}75)^4$ en lugar de $(0{,}75)^2$; el exponente del fracaso debe ser $n-k=4-2=2$.`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que <strong>más de 2</strong> emails sean phishing?",
+   opciones:[
+     "$P(X>2)=P(X=3)+P(X=4)\\approx0{,}0469+0{,}0039=0{,}0508$",
+     "$P(X>2)=1-P(X=2)\\approx0{,}7891$",
+     "$P(X>2)=P(X\\geq2)=P(X=2)+P(X=3)+P(X=4)\\approx0{,}2617$"
+   ],
+   correcta:0,
+   desarrollo:`«Más de 2» = $X>2$, es decir $k=3$ y $k=4$ (no incluye $k=2$):<br>
+$P(X=3)=\\binom{4}{3}(0{,}25)^3(0{,}75)^1=4\\cdot0{,}015625\\cdot0{,}75\\approx0{,}0469$<br>
+$P(X=4)=\\binom{4}{4}(0{,}25)^4(0{,}75)^0=1\\cdot0{,}003906\\cdot1\\approx0{,}0039$<br>
+$$P(X>2)=0{,}0469+0{,}0039=\\class{hl}{0{,}0508}$$
+<span class="warn">⚠ Opción C:</span> calcula $P(X\\geq2)$, que sí incluye $k=2$. «Más de 2» y «al menos 2» no son lo mismo.`}
+]},
+
+]; // fin problems
+
+// ══════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════
+let currentProb = 0, solvedAp = {}, solvedP = new Set(), formularioOpen = false;
+function apKey(pi, ai) { return `${pi}-${ai}`; }
+
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
+function buildTabs() {
+  const row = document.getElementById('tabs-row');
+  const chip = document.getElementById('header-chip');
+  row.innerHTML = '';
+  problems.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i === currentProb ? ' active' : '') + (solvedP.has(i) ? ' solved' : '');
+    btn.innerHTML = `<span class="tab-num">${i + 1}</span>`;
+    btn.onclick = () => { currentProb = i; formularioOpen = false; buildTabs(); renderProblem(); };
+    row.appendChild(btn);
+  });
+  chip.textContent = `P ${currentProb + 1}/${problems.length}`;
+}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function renderProblem() {
+  const pc = document.getElementById('page-content');
+  pc.style.animation = 'none';
+  requestAnimationFrame(() => { pc.style.animation = ''; });
+  const p = problems[currentProb], pi = currentProb;
+
+  let html = `
+  <div class="prob-header">
+    <div class="prob-num-badge">${p.id}</div>
+    <div class="prob-meta">
+      <span class="prob-type-tag">${p.tipo}</span>
+      <div class="prob-title">${p.titulo}</div>
+    </div>
+  </div>
+  <div class="contexto-card">
+    <span class="contexto-tag">📋 Lee el enunciado con atención</span>
+    <div class="contexto-text">${p.contexto}</div>
+  </div>
+  <div class="actions-bar">
+    <button class="btn-formula${formularioOpen ? ' open' : ''}" id="btn-formula" onclick="toggleFormulario()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="btn-formula-txt">${formularioOpen ? 'Ocultar fórmulas' : 'Ver fórmulas'}</span>
+    </button>
+    <button class="btn-pizarra" onclick="openPizarra()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <div class="btn-pizarra-label"><span>Pizarra</span><span class="btn-pizarra-sub">táctil</span></div>
+    </button>
+  </div>
+  <div class="formulario-panel${formularioOpen ? ' open' : ''}" id="formulario-panel">
+    ${formularioHTML()}
+  </div>
+  <div class="apartados-wrap">`;
+
+  p.apartados.forEach((ap, ai) => {
+    const solved = !!solvedAp[apKey(pi, ai)];
+    html += `<div class="apartado-card${solved ? ' solved' : ''}" id="ap-card-${ai}">
+      <div class="apartado-head">
+        <div class="apartado-label">Apartado ${ap.letra.toUpperCase()} <span class="check-icon">✓</span></div>
+        <div class="apartado-q">${ap.pregunta}</div>
+      </div>
+      <div class="opts-list" id="opts-${ai}">
+        ${ap.opciones.map((o, oi) => `
+          <button class="opt-btn${solved && oi === ap.correcta ? ' correct' : ''}" ${solved ? 'disabled' : ''} onclick="checkAns(${ai},${oi})">
+            <div class="opt-letter">${['A','B','C'][oi]}</div><span>${o}</span>
+          </button>`).join('')}
+      </div>
+      <div class="feedback${solved ? ' correct' : ''}" id="fb-${ai}" style="display:${solved ? 'block' : 'none'}">${solved ? '✓ Correcto.' : ''}</div>
+    </div>`;
+  });
+
+  html += `</div>`;
+  const hasAny = p.apartados.some((_, ai) => solvedAp[apKey(pi, ai)]);
+  const entries = p.apartados.map((ap, ai) => solvedAp[apKey(pi, ai)] ? `<div class="dev-entry">${ap.desarrollo}</div>` : '').join('');
+  html += `<div class="dev-panel">
+    <div class="dev-panel-header"><div class="dev-dot${hasAny ? ' active' : ''}"></div><span class="dev-panel-title">Desarrollo paso a paso</span></div>
+    <div class="dev-entries" id="dev-entries">${hasAny ? entries : '<div class="dev-empty">Responde correctamente para ver el desarrollo matemático.</div>'}</div>
+  </div>`;
+
+  pc.innerHTML = html;
+  if (window.MathJax) MathJax.typesetPromise([pc]);
+}
+
+// ══════════════════════════════════════════
+//  CHECK RESPUESTA
+// ══════════════════════════════════════════
+function checkAns(ai, oi) {
+  const p = problems[currentProb], ap = p.apartados[ai], pi = currentProb;
+  const btns = document.querySelectorAll(`#opts-${ai} .opt-btn`);
+  const fb = document.getElementById(`fb-${ai}`);
+  if (oi === ap.correcta) {
+    btns.forEach((b, i) => { b.disabled = true; if (i === oi) b.classList.add('correct'); });
+    fb.textContent = '✓ Correcto.'; fb.className = 'feedback correct'; fb.style.display = 'block';
+    document.getElementById(`ap-card-${ai}`).classList.add('solved');
+    solvedAp[apKey(pi, ai)] = true;
+    const entriesEl = document.getElementById('dev-entries');
+    if (entriesEl.querySelector('.dev-empty')) entriesEl.innerHTML = '';
+    const entry = document.createElement('div'); entry.className = 'dev-entry'; entry.innerHTML = ap.desarrollo;
+    entriesEl.appendChild(entry);
+    document.querySelectorAll('.dev-dot').forEach(d => d.classList.add('active'));
+    if (window.MathJax) MathJax.typesetPromise([entry]);
+    setTimeout(() => { entriesEl.scrollTop = entriesEl.scrollHeight; }, 300);
+    if (p.apartados.every((_, j) => solvedAp[apKey(pi, j)])) { solvedP.add(pi); buildTabs(); }
+  } else {
+    btns[oi].classList.add('wrong'); btns[oi].disabled = true;
+    fb.textContent = 'Respuesta incorrecta. Inténtalo de nuevo.'; fb.className = 'feedback wrong'; fb.style.display = 'block';
+  }
+}
+
+// ══════════════════════════════════════════
+//  FORMULARIO TOGGLE
+// ══════════════════════════════════════════
+function toggleFormulario() {
+  formularioOpen = !formularioOpen;
+  const panel = document.getElementById('formulario-panel');
+  const btn = document.getElementById('btn-formula');
+  const txt = btn.querySelector('.btn-formula-txt');
+  if (formularioOpen) {
+    panel.classList.add('open'); btn.classList.add('open');
+    txt.textContent = 'Ocultar fórmulas';
+    if (window.MathJax) MathJax.typesetPromise([panel]);
+  } else {
+    panel.classList.remove('open'); btn.classList.remove('open');
+    txt.textContent = 'Ver fórmulas';
+  }
+}
+
+// ══════════════════════════════════════════
+//  PIZARRA
+// ══════════════════════════════════════════
+let drawing = false, lastX = 0, lastY = 0, penColor = '#e8e8f0', penSize = 3;
+let pizCanvas = null, pizCtx = null, pizReady = false;
+
+function initPizarra() {
+  pizCanvas = document.getElementById('pizarra-canvas');
+  pizCtx = pizCanvas.getContext('2d');
+  resizePiz();
+  window.addEventListener('resize', resizePiz);
+  function pos(e) { const r = pizCanvas.getBoundingClientRect(); const s = e.touches ? e.touches[0] : e; return { x: s.clientX - r.left, y: s.clientY - r.top }; }
+  function start(e) { e.preventDefault(); drawing = true; const p = pos(e); lastX = p.x; lastY = p.y; }
+  function move(e) {
+    if (!drawing) return; e.preventDefault();
+    const p = pos(e);
+    pizCtx.beginPath(); pizCtx.moveTo(lastX, lastY); pizCtx.lineTo(p.x, p.y);
+    pizCtx.strokeStyle = penColor; pizCtx.lineWidth = penSize;
+    pizCtx.lineCap = 'round'; pizCtx.lineJoin = 'round'; pizCtx.stroke();
+    lastX = p.x; lastY = p.y;
+  }
+  function stop() { drawing = false; }
+  pizCanvas.addEventListener('mousedown', start); pizCanvas.addEventListener('mousemove', move);
+  pizCanvas.addEventListener('mouseup', stop); pizCanvas.addEventListener('mouseleave', stop);
+  pizCanvas.addEventListener('touchstart', start, { passive: false });
+  pizCanvas.addEventListener('touchmove', move, { passive: false });
+  pizCanvas.addEventListener('touchend', stop);
+  pizReady = true;
+}
+
+function resizePiz() {
+  if (!pizCanvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight - 52;
+  pizCanvas.style.width = W + 'px'; pizCanvas.style.height = H + 'px';
+  pizCanvas.width = W * dpr; pizCanvas.height = H * dpr;
+  pizCtx.scale(dpr, dpr);
+  pizCtx.fillStyle = '#0e0e1a'; pizCtx.fillRect(0, 0, W, H);
+}
+
+function openPizarra() { document.getElementById('pizarra-overlay').classList.add('open'); document.body.style.overflow = 'hidden'; if (!pizReady) initPizarra(); }
+function closePizarra() { document.getElementById('pizarra-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function clearCanvas() { if (!pizCtx) return; pizCtx.fillStyle = '#0e0e1a'; pizCtx.fillRect(0, 0, pizCanvas.width / (window.devicePixelRatio || 1), pizCanvas.height / (window.devicePixelRatio || 1)); }
+function setColor(col, btn) { penColor = col; document.querySelectorAll('.btn-color').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+function setSize(sz, btn) { penSize = sz; document.querySelectorAll('.btn-size').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+
+window.onload = () => { buildTabs(); renderProblem(); };
+</script>
+<script data-goatcounter="https://gabrielrogo.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
