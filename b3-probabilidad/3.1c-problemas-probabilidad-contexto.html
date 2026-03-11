@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Probabilidad con Contexto · MatEBAUticas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
+    options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2a;--surface:#1e1e30;--border:#2a2a40;
+  --lime:#b8ff3c;--lime-dim:rgba(184,255,60,0.10);--lime-glow:rgba(184,255,60,0.22);
+  --text:#e8e8f0;--text-soft:#7a7a9a;--text-dim:#4a4a6a;
+  --blue:#4a9eff;--blue-dim:rgba(74,158,255,0.10);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.10);
+  --teal:#2dd4bf;--orange:#fb923c;--red:#ff5a5a;
+  --radius:16px;--radius-sm:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.6}
+.glow-blob{position:fixed;width:420px;height:420px;background:radial-gradient(circle,rgba(184,255,60,.05) 0%,transparent 70%);top:-100px;right:-120px;border-radius:50%;pointer-events:none;z-index:0}
+.module-header{position:sticky;top:0;z-index:100;background:rgba(13,13,20,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 18px;height:56px;display:flex;align-items:center;gap:14px}
+.btn-back{width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text-soft);font-size:1rem;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.btn-back:active{background:var(--bg3)}
+.module-header-info{flex:1;overflow:hidden}
+.module-header-tag{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;display:block}
+.module-header-title{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.mode-chip{font-family:'Syne Mono',monospace;font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,.25);white-space:nowrap;flex-shrink:0}
+.tabs-wrap{padding:14px 18px 12px;position:sticky;top:56px;z-index:90;background:var(--bg);border-bottom:1px solid var(--border)}
+.tabs-label{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.tabs-row{display:flex;gap:6px}
+.tab-btn{flex:1;height:44px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.tab-btn:active{transform:scale(.95)}
+.tab-num{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text-dim);letter-spacing:-.02em}
+.tab-btn.active{border-color:var(--purple);background:var(--purple-dim)}
+.tab-btn.active .tab-num{color:var(--purple)}
+.tab-btn.solved{border-color:rgba(184,255,60,.35);background:var(--lime-dim)}
+.tab-btn.solved .tab-num{color:var(--lime)}
+.tab-btn.active.solved{border-color:var(--lime)}
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding-bottom:48px}
+.page-content{padding:20px 18px 0;display:flex;flex-direction:column;gap:14px;animation:fadeUp .3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.prob-header{display:flex;align-items:flex-start;gap:12px}
+.prob-num-badge{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--purple);background:var(--purple-dim);border:1px solid rgba(167,139,250,.2);border-radius:var(--radius-sm);width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prob-meta{flex:1}
+.prob-type-tag{font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+.prob-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-.01em;line-height:1.3}
+.contexto-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:var(--radius);padding:16px 18px}
+.contexto-tag{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--orange);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:block}
+.contexto-text{font-size:.88rem;line-height:1.78;color:var(--text-soft)}
+.contexto-text strong{color:var(--text);font-weight:600}
+.contexto-text em{color:var(--teal);font-style:normal;font-weight:600}
+.actions-bar{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.btn-pizarra{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#1a0f35 0%,#2d1a5e 100%);border:1.5px solid var(--purple);border-radius:var(--radius-sm);padding:10px 16px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;color:var(--purple);transition:all .15s;-webkit-tap-highlight-color:transparent;box-shadow:0 0 12px rgba(167,139,250,.15)}
+.btn-pizarra:active{transform:scale(.97);box-shadow:none}
+.btn-pizarra svg{flex-shrink:0}
+.btn-pizarra-label{display:flex;flex-direction:column;line-height:1.1}
+.btn-pizarra-sub{font-size:.6rem;font-weight:400;color:rgba(167,139,250,.6);margin-top:1px}
+.btn-formula{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-soft);transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn-formula:active{background:var(--surface)}
+.btn-formula.open{border-color:var(--teal);color:var(--teal);background:rgba(45,212,191,.08)}
+.formulario-panel{max-height:0;overflow:hidden;transition:max-height .4s ease;border-radius:var(--radius);border:0px solid var(--border)}
+.formulario-panel.open{max-height:3000px;border:1px solid var(--teal);overflow:visible}
+.formulario-inner{background:var(--bg2);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.form-sec-title{font-family:'Syne Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;padding-top:4px}
+.form-card{border-radius:10px;padding:11px 14px;border:1px solid var(--border)}
+.form-card.blue{background:rgba(74,158,255,.07);border-left:3px solid var(--blue)}
+.form-card.teal{background:rgba(45,212,191,.07);border-left:3px solid var(--teal)}
+.form-card.orange{background:rgba(251,146,60,.07);border-left:3px solid var(--orange)}
+.form-card.purple{background:rgba(167,139,250,.07);border-left:3px solid var(--purple)}
+.form-card.lime{background:rgba(184,255,60,.07);border-left:3px solid var(--lime)}
+.form-name{font-family:'Syne',sans-serif;font-size:.76rem;font-weight:800;margin-bottom:5px;letter-spacing:-.01em}
+.form-card.blue .form-name{color:var(--blue)}
+.form-card.teal .form-name{color:var(--teal)}
+.form-card.orange .form-name{color:var(--orange)}
+.form-card.purple .form-name{color:var(--purple)}
+.form-card.lime .form-name{color:var(--lime)}
+.form-expr{font-size:.82rem;line-height:1.8;color:var(--text);overflow-x:auto}
+.form-note{font-size:.72rem;color:var(--text-soft);line-height:1.5;margin-top:4px}
+.form-note b{color:var(--text);font-weight:600}
+.form-link{display:flex;align-items:center;gap:6px;justify-content:center;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;font-size:.78rem;font-weight:600;color:var(--text-soft);transition:all .15s}
+.form-link:active{background:var(--surface)}
+.pizarra-overlay{display:none;position:fixed;inset:0;z-index:300;background:#0a0a12;flex-direction:column}
+.pizarra-overlay.open{display:flex}
+.pizarra-topbar{height:52px;background:rgba(10,10,18,.98);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0;flex-wrap:wrap}
+.pizarra-title{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--purple);margin-right:4px}
+.pizarra-controls{display:flex;gap:7px;align-items:center;flex:1;flex-wrap:wrap}
+.btn-color{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .1s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.btn-color:active{transform:scale(.85)}
+.btn-color.active{border-color:white;box-shadow:0 0 6px rgba(255,255,255,.4)}
+.btn-size{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-family:'Syne Mono',monospace;font-size:.68rem;color:var(--text-soft);cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:34px;text-align:center}
+.btn-size.active{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.4)}
+.btn-borrar{background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.3);border-radius:var(--radius-sm);padding:7px 13px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;color:var(--red);cursor:pointer;-webkit-tap-highlight-color:transparent;margin-left:auto}
+.btn-borrar:active{opacity:.7}
+.btn-cerrar-piz{background:var(--purple);border:none;border-radius:var(--radius-sm);padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;color:var(--bg);cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.btn-cerrar-piz:active{opacity:.85}
+#pizarra-canvas{flex:1;display:block;width:100%;height:100%;background:#0e0e1a;touch-action:none;cursor:crosshair}
+.apartados-wrap{display:flex;flex-direction:column;gap:12px}
+.apartado-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.apartado-card.solved{border-color:rgba(184,255,60,.25)}
+.apartado-card.q-sucesos{border-left:3px solid var(--blue)}
+.apartado-card.q-translate{border-left:3px solid var(--teal)}
+.apartado-card.q-sucesos.solved,.apartado-card.q-translate.solved{border-color:rgba(184,255,60,.25)}
+.apartado-head{padding:14px 16px 10px}
+.apartado-label{font-family:'Syne Mono',monospace;font-size:.58rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.apartado-label .check-icon{color:var(--lime);display:none}
+.apartado-card.solved .apartado-label .check-icon{display:inline}
+.apartado-q{font-size:.92rem;line-height:1.65;color:var(--text)}
+.opts-list{padding:0 12px 14px;display:flex;flex-direction:column;gap:7px}
+.opt-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;text-align:left;font-family:'Space Grotesk',sans-serif;font-size:.86rem;color:var(--text-soft);display:flex;align-items:center;gap:10px;min-height:52px;transition:all .15s;-webkit-tap-highlight-color:transparent;width:100%}
+.opt-btn:active:not(:disabled){transform:scale(.98)}
+.opt-btn:disabled{opacity:.55;cursor:default}
+.opt-letter{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Syne Mono',monospace;font-size:.62rem;font-weight:700;color:var(--text-dim);flex-shrink:0;transition:all .15s}
+.opt-btn.correct{border-color:rgba(184,255,60,.4);background:var(--lime-dim);color:var(--lime)}
+.opt-btn.correct .opt-letter{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.opt-btn.wrong{border-color:rgba(255,90,90,.3);background:rgba(255,90,90,.06);color:var(--red)}
+.opt-btn.wrong .opt-letter{border-color:rgba(255,90,90,.4);color:var(--red)}
+.feedback{margin:0 12px 10px;padding:9px 13px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:500;display:none}
+.feedback.correct{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(184,255,60,.2)}
+.feedback.wrong{background:rgba(255,90,90,.08);color:var(--red);border:1px solid rgba(255,90,90,.2)}
+.dev-panel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.dev-panel-header{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.dev-panel-title{font-family:'Syne Mono',monospace;font-size:.6rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+.dev-dot{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.dev-dot.active{background:var(--lime);box-shadow:0 0 6px var(--lime-glow)}
+.dev-entries{padding:8px;display:flex;flex-direction:column;gap:6px;max-height:800px;overflow-y:auto}
+.dev-empty{padding:22px 16px;text-align:center;font-size:.8rem;color:var(--text-dim)}
+.dev-entry{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:8px;padding:12px 14px;font-size:.84rem;line-height:1.8;color:var(--text-soft);animation:fadeUp .3s ease both}
+.dev-entry b{color:var(--text);font-weight:600}
+.dev-entry .hl{color:var(--lime);font-weight:700}
+.dev-entry .warn{color:var(--orange);font-weight:600}
+.dev-entry .sym{color:var(--teal);font-weight:700;font-family:'Syne Mono',monospace}
+.author-note{padding:20px 18px 0;font-size:.7rem;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+.author-dot{width:3px;height:3px;border-radius:50%;background:var(--border)}
+</style>
+</head>
+<body>
+<div class="glow-blob"></div>
+
+<header class="module-header">
+  <a class="btn-back" href="index.html">←</a>
+  <div class="module-header-info">
+    <span class="module-header-tag">Bloque 3 · Probabilidad</span>
+    <span class="module-header-title">Probabilidad con Contexto</span>
+  </div>
+  <div class="mode-chip" id="header-chip">P 1/5</div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs-label">Selecciona un problema</div>
+  <div class="tabs-row" id="tabs-row"></div>
+</div>
+
+<div class="pizarra-overlay" id="pizarra-overlay">
+  <div class="pizarra-topbar">
+    <span class="pizarra-title">✏️ Pizarra</span>
+    <div class="pizarra-controls">
+      <button class="btn-color active" style="background:#e8e8f0" onclick="setColor('#e8e8f0',this)"></button>
+      <button class="btn-color" style="background:#b8ff3c" onclick="setColor('#b8ff3c',this)"></button>
+      <button class="btn-color" style="background:#4a9eff" onclick="setColor('#4a9eff',this)"></button>
+      <button class="btn-color" style="background:#a78bfa" onclick="setColor('#a78bfa',this)"></button>
+      <button class="btn-size active" onclick="setSize(3,this)">S</button>
+      <button class="btn-size" onclick="setSize(5,this)">M</button>
+      <button class="btn-size" onclick="setSize(9,this)">G</button>
+    </div>
+    <button class="btn-borrar" onclick="clearCanvas()">Borrar</button>
+    <button class="btn-cerrar-piz" onclick="closePizarra()">Cerrar ✕</button>
+  </div>
+  <canvas id="pizarra-canvas"></canvas>
+</div>
+
+<div class="app">
+  <div class="page-content" id="page-content"></div>
+  <div class="author-note">
+    <span>Gabriel</span><div class="author-dot"></div>
+    <span>CC BY-NC-SA 4.0</span><div class="author-dot"></div>
+    <span>MatEBAUticas 2026</span>
+  </div>
+</div>
+
+<script>
+function formularioHTML(){
+  return `<div class="formulario-inner">
+    <div class="form-sec-title" style="color:var(--blue)">Complementario · Unión · Diferencia</div>
+    <div class="form-card blue"><div class="form-name">Complementario</div><div class="form-expr">$P(\\bar{A})=1-P(A)$</div></div>
+    <div class="form-card blue"><div class="form-name">Unión (al menos uno)</div><div class="form-expr">$P(A\\cup B)=P(A)+P(B)-P(A\\cap B)$</div></div>
+    <div class="form-card blue"><div class="form-name">Diferencia</div><div class="form-expr">$P(A-B)=P(A)-P(A\\cap B)$</div></div>
+    <div class="form-sec-title" style="color:var(--teal);margin-top:4px">Intersección · Condicionada</div>
+    <div class="form-card teal"><div class="form-name">Regla del producto</div><div class="form-expr">$P(A\\cap B)=P(A)\\cdot P(B\\mid A)$</div></div>
+    <div class="form-card teal"><div class="form-name">Probabilidad condicionada</div><div class="form-expr">$P(A\\mid B)=\\dfrac{P(A\\cap B)}{P(B)}$</div><div class="form-note">«Prob. de A <b>sabiendo que B</b> ya ocurrió»</div></div>
+    <div class="form-sec-title" style="color:var(--orange);margin-top:4px">Probabilidad total · Bayes</div>
+    <div class="form-card orange"><div class="form-name">Probabilidad total</div><div class="form-expr">$P(A)=\\sum_i P(B_i)\\cdot P(A\\mid B_i)$</div><div class="form-note">Suma de <b>todos los caminos</b> del árbol que llevan a A.</div></div>
+    <div class="form-card purple"><div class="form-name">Bayes</div><div class="form-expr">$P(B_i\\mid A)=\\dfrac{P(B_i)\\cdot P(A\\mid B_i)}{P(A)}$</div><div class="form-note">«Dar la vuelta» a la condicionada.</div></div>
+    <div class="form-sec-title" style="color:var(--lime);margin-top:4px">Independencia · Incompatibilidad</div>
+    <div class="form-card lime"><div class="form-name">Independientes</div><div class="form-expr">$P(A\\cap B)=P(A)\\cdot P(B)$</div><div class="form-note">Equiv.: $P(A\\mid B)=P(A)$</div></div>
+    <div class="form-card lime"><div class="form-name">Incompatibles</div><div class="form-expr">$P(A\\cap B)=0$</div><div class="form-note">No pueden ocurrir a la vez.</div></div>
+    <a class="form-link" href="3_0-formulario-probabilidad.html">Ver formulario completo →</a>
+  </div>`;
+}
+
+const problems = [
+
+// ───────────────────────────────────────────
+// P1 · TRANSPORTE
+// ───────────────────────────────────────────
+{id:1,tipo:"Probabilidad total · Bayes",titulo:"Movilidad urbana y retrasos",
+contexto:`El departamento de movilidad de una gran ciudad elaboró un informe sobre los hábitos de desplazamiento al trabajo. Según los datos, <strong>de cada diez ciudadanos que trabajan fuera de casa, seis optan por el transporte público</strong> —autobús, metro o tranvía— mientras que los cuatro restantes se desplazan en vehículo particular. El estudio también recopiló información sobre puntualidad: <strong>entre quienes habitualmente van en transporte público, tres de cada diez reconocen llegar tarde con frecuencia</strong> a su lugar de trabajo. Este porcentaje, sin embargo, <strong>se reduce a la mitad entre los conductores de vehículo privado</strong>. El informe señala además que factores externos como obras o accidentes afectan a todos los colectivos por igual, aunque las diferencias en puntualidad entre grupos son estadísticamente significativas. Se selecciona al azar a uno de estos ciudadanos trabajadores.`,
+apartados:[
+  {letra:"a",clase:"q-sucesos",
+   pregunta:"Lee el enunciado y elige la opción que define <strong>correctamente el suceso L</strong> para este problema.",
+   opciones:["$L$ = «el ciudadano seleccionado llega tarde con frecuencia al trabajo»","$L$ = «el ciudadano seleccionado usa transporte público»","$L$ = «el ciudadano seleccionado trabaja lejos de casa»"],
+   correcta:0,
+   desarrollo:`<b>Definición de sucesos:</b><br>
+El enunciado describe dos características: medio de transporte y puntualidad.<br>
+• <span class="sym">T</span> = «usa transporte público» · <span class="sym">$V=\\bar{T}$</span> = «usa vehículo privado»<br>
+• <span class="sym">L</span> = «llega tarde con frecuencia»<br><br>
+<span class="warn">⚠ Error frecuente:</span> definir el suceso por el dato numérico. «Llegar tarde» es el <em>suceso</em>; el 30 % y el 15 % son probabilidades condicionadas de ese suceso.`},
+  {letra:"b",clase:"q-translate",
+   pregunta:"«Este porcentaje se reduce a la mitad entre los conductores de vehículo privado». ¿Cómo se escribe ese dato en notación formal?",
+   opciones:["$P(L\\mid V)=0{,}15$  (la mitad de 0,30)","$P(V\\mid L)=0{,}15$","$P(L\\cap V)=0{,}15$"],
+   correcta:0,
+   desarrollo:`«Entre los conductores» → ya estamos <em>dentro del grupo vehículo privado</em> → es una condicionada sobre $V$.<br>
+La mitad del 30 % es el 15 %: $P(L\\mid V)=0{,}15$.<br>
+El conjunto completo de datos:<br>
+$P(T)=0{,}6$; $P(V)=0{,}4$; $P(L\\mid T)=0{,}30$; $P(L\\mid V)=0{,}15$.<br><br>
+<span class="warn">⚠ Opción B:</span> $P(V\\mid L)$ sería «de los que llegan tarde, cuántos van en coche» —exactamente lo contrario.<br>
+<span class="warn">⚠ Opción C:</span> $P(L\\cap V)$ es la probabilidad conjunta (todo el universo), no solo dentro del grupo V.`},
+  {letra:"c",
+   pregunta:"Calcula la probabilidad de que el ciudadano seleccionado llegue tarde con frecuencia, $P(L)$.",
+   opciones:["$P(L)=0{,}24$","$P(L)=0{,}45$","$P(L)=0{,}225$"],
+   correcta:0,
+   desarrollo:`<b>Probabilidad total</b> (dos caminos del árbol → $L$):<br>
+$$P(L)=P(T)\\cdot P(L\\mid T)+P(V)\\cdot P(L\\mid V)=0{,}6\\times0{,}30+0{,}4\\times0{,}15=0{,}18+0{,}06=\\boxed{0{,}24}$$`},
+  {letra:"d",
+   pregunta:"Sabiendo que el ciudadano llega tarde, ¿cuál es la probabilidad de que use transporte público, $P(T\\mid L)$?",
+   opciones:["$P(T\\mid L)=0{,}75$","$P(T\\mid L)=0{,}60$","$P(T\\mid L)=0{,}30$"],
+   correcta:0,
+   desarrollo:`<b>Bayes:</b><br>
+$$P(T\\mid L)=\\frac{P(T)\\cdot P(L\\mid T)}{P(L)}=\\frac{0{,}6\\times0{,}30}{0{,}24}=\\frac{0{,}18}{0{,}24}=\\boxed{0{,}75}$$
+<span class="warn">⚠</span> $P(T\\mid L)\\neq P(L\\mid T)$. La condicionada no es simétrica.`},
+  {letra:"e",
+   pregunta:"¿Son independientes «usar transporte público» y «llegar tarde»?",
+   opciones:["No: $P(T\\cap L)=0{,}18\\neq P(T)\\cdot P(L)=0{,}144$","Sí: $P(T)=0{,}6$ y $P(L)=0{,}24$ son independientes por naturaleza","No se puede determinar sin el tamaño muestral"],
+   correcta:0,
+   desarrollo:`$P(T\\cap L)=0{,}6\\times0{,}30=0{,}18$<br>$P(T)\\cdot P(L)=0{,}6\\times0{,}24=0{,}144$<br>$0{,}18\\neq0{,}144$ → <span class="hl">NO son independientes.</span>`},
+  {letra:"f",
+   pregunta:"¿Cuál es la probabilidad de que el ciudadano use vehículo privado Y llegue tarde, $P(V\\cap L)$?",
+   opciones:["$P(V\\cap L)=0{,}06$","$P(V\\cap L)=0{,}15$","$P(V\\cap L)=0{,}40$"],
+   correcta:0,
+   desarrollo:`$$P(V\\cap L)=P(V)\\cdot P(L\\mid V)=0{,}4\\times0{,}15=\\boxed{0{,}06}$$
+<span class="warn">⚠</span> $P(L\\mid V)=0{,}15$ es solo el factor condicional, no la probabilidad conjunta.`}
+]},
+
+// ───────────────────────────────────────────
+// P2 · SEGUROS
+// ───────────────────────────────────────────
+{id:2,tipo:"Unión · Intersección · Diferencia",titulo:"Seguros del hogar",
+contexto:`Una correduría de seguros analiza su cartera de clientes particulares para diseñar una nueva oferta comercial. Los datos internos muestran que <strong>siete de cada diez clientes tienen contratada una póliza de hogar</strong>, que cubre daños estructurales y responsabilidad civil frente a terceros. Por otra parte, <strong>cuatro de cada diez clientes disponen de una póliza de contenido</strong>, que protege los bienes muebles del inmueble frente a robo o siniestros. El actuario jefe observa, además, que <strong>de quienes tienen seguro de contenido, exactamente cinco octavos también tienen póliza de hogar</strong>. La correduría quiere estimar cuántos clientes quedarían sin ninguna cobertura si decide no renovar ambas líneas simultáneamente. Un actuario elige al azar un expediente de cliente.`,
+apartados:[
+  {letra:"a",clase:"q-sucesos",
+   pregunta:"¿Cuál es la definición correcta de los sucesos <em>H</em> y <em>C</em>?",
+   opciones:["$H$=«tiene póliza de hogar», $C$=«tiene póliza de contenido»","$H$=«tiene póliza de contenido», $C$=«tiene póliza de hogar»","$H$=«es cliente activo», $C$=«tiene al menos una póliza»"],
+   correcta:0,
+   desarrollo:`• <span class="sym">H</span> = «el cliente tiene póliza de hogar»<br>
+• <span class="sym">C</span> = «el cliente tiene póliza de contenido»<br>
+Una vez fijados, «siete de cada diez tienen hogar» → $P(H)=0{,}7$; «cuatro de cada diez tienen contenido» → $P(C)=0{,}4$.`},
+  {letra:"b",clase:"q-translate",
+   pregunta:"«De quienes tienen seguro de contenido, exactamente cinco octavos también tienen póliza de hogar». Escríbelo en notación formal.",
+   opciones:["$P(H\\mid C)=5/8=0{,}625$","$P(H\\cap C)=5/8=0{,}625$","$P(C\\mid H)=5/8=0{,}625$"],
+   correcta:0,
+   desarrollo:`«De quienes tienen <em>C</em>» → el grupo de referencia es $C$ → condicionada sobre $C$.<br>
+«…también tienen <em>H</em>» → el evento de interés dentro de ese grupo es $H$ → $P(H\\mid C)=5/8=0{,}625$.<br><br>
+<span class="warn">⚠ Opción B:</span> $P(H\\cap C)$ sería la fracción del <em>total</em> de clientes con ambas, que aún no conocemos.<br>
+<span class="warn">⚠ Opción C:</span> invertiría la condición: «de los que tienen hogar, cuántos tienen contenido».`},
+  {letra:"c",
+   pregunta:"Calcula $P(H\\cap C)$, la probabilidad de que el expediente elegido tenga ambas pólizas.",
+   opciones:["$P(H\\cap C)=0{,}25$","$P(H\\cap C)=0{,}625$","$P(H\\cap C)=0{,}40$"],
+   correcta:0,
+   desarrollo:`$$P(H\\cap C)=P(C)\\cdot P(H\\mid C)=0{,}4\\times0{,}625=\\boxed{0{,}25}$$
+<span class="warn">⚠</span> $P(H\\mid C)=0{,}625$ es la condicionada; hay que multiplicar por $P(C)$ para obtener la conjunta.`},
+  {letra:"d",
+   pregunta:"¿Qué porcentaje de clientes tiene al menos una de las dos pólizas?",
+   opciones:["$P(H\\cup C)=0{,}85$","$P(H\\cup C)=1{,}10$","$P(H\\cup C)=0{,}70$"],
+   correcta:0,
+   desarrollo:`$$P(H\\cup C)=P(H)+P(C)-P(H\\cap C)=0{,}7+0{,}4-0{,}25=\\boxed{0{,}85}$$`},
+  {letra:"e",
+   pregunta:"¿Cuál es la probabilidad de que el cliente tenga póliza de contenido pero <strong>no</strong> de hogar?",
+   opciones:["$P(C-H)=0{,}15$","$P(C-H)=0{,}40$","$P(C-H)=0{,}45$"],
+   correcta:0,
+   desarrollo:`$$P(C-H)=P(C)-P(C\\cap H)=0{,}4-0{,}25=\\boxed{0{,}15}$$
+<span class="warn">⚠ Error frecuente:</span> calcular $P(H)-P(C)=0{,}30$. Eso sería $H-C$, el suceso contrario.`},
+  {letra:"f",
+   pregunta:"¿Son independientes $H$ y $C$?",
+   opciones:["No: $P(H)\\cdot P(C)=0{,}28\\neq P(H\\cap C)=0{,}25$","Sí: $P(H\\mid C)=P(H)=0{,}7$","No se puede saber sin el número total de clientes"],
+   correcta:0,
+   desarrollo:`$P(H)\\cdot P(C)=0{,}7\\times0{,}4=0{,}28\\neq0{,}25=P(H\\cap C)$ → <span class="hl">NO son independientes.</span><br>
+De hecho $P(H\\mid C)=0{,}625\\neq0{,}7=P(H)$: saber que alguien tiene contenido cambia la probabilidad de que tenga hogar.`}
+]},
+
+// ───────────────────────────────────────────
+// P3 · PRÉSTAMOS
+// ───────────────────────────────────────────
+{id:3,tipo:"Probabilidad total · Bayes (tres hipótesis)",titulo:"Impagos en préstamos",
+contexto:`Un banco regional divide su cartera de créditos en tres líneas de negocio: préstamos <strong>Personales</strong>, préstamos <strong>Hipotecarios</strong> y préstamos <strong>Estudiantiles</strong>. Según la memoria anual, <strong>la mitad de los expedientes activos son de tipo Personal</strong>; del resto, los hipotecarios representan tres veces más que los estudiantiles. El departamento de riesgos ha calculado que <strong>de cada cien préstamos personales activos, quince han entrado en situación de impago</strong>; que <strong>la tasa de morosidad en los hipotecarios es del 5 %</strong>; y que <strong>los estudiantiles presentan un riesgo de morosidad cinco veces mayor que el hipotecario</strong>. Nótese que en este contexto «impago» y «morosidad» se usan como términos equivalentes. Un auditor externo escoge al azar un único expediente de toda la cartera.`,
+apartados:[
+  {letra:"a",clase:"q-sucesos",
+   pregunta:"¿Cuál es el conjunto completo y correcto de sucesos para modelizar este problema?",
+   opciones:["$P$=«Personal», $H$=«Hipotecario», $E$=«Estudiantil», $I$=«impago»","$P$=«Personal», $I$=«impago», $\\bar{I}$=«sin impago» (no hacen falta H ni E)","$P$=«Personal», $H$=«Hipotecario», $E$=«Estudiantil» (el impago no es un suceso, es un porcentaje)"],
+   correcta:0,
+   desarrollo:`Este problema tiene <em>dos niveles</em>: el tipo de préstamo y el resultado económico.<br>
+• Hipótesis (forman partición): <span class="sym">P</span>, <span class="sym">H</span>, <span class="sym">E</span> — incompatibles y exhaustivos.<br>
+• Resultado: <span class="sym">I</span> = «impago» (equivale a «morosidad» según el enunciado).<br>
+<span class="warn">⚠</span> Sin definir los tres tipos no podemos aplicar probabilidad total ni Bayes.`},
+  {letra:"b",clase:"q-translate",
+   pregunta:"«Del resto [de los no Personales], los hipotecarios representan tres veces más que los estudiantiles». ¿Cuáles son $P(H)$ y $P(E)$?",
+   opciones:["$P(H)=0{,}375$, $P(E)=0{,}125$","$P(H)=0{,}30$, $P(E)=0{,}20$","Solo se sabe que $P(H)=3\\cdot P(E)$, sin valor exacto"],
+   correcta:0,
+   desarrollo:`$P(P)=0{,}5$ → los restantes suman $0{,}5$. $P(H)=3P(E)$ y $P(H)+P(E)=0{,}5$:<br>
+$4P(E)=0{,}5$ → $P(E)=0{,}125$, $P(H)=0{,}375$.<br>
+Tasas de morosidad: $P(I\\mid P)=0{,}15$; $P(I\\mid H)=0{,}05$; $P(I\\mid E)=5\\times0{,}05=0{,}25$.`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que el expediente elegido sea un caso de impago, $P(I)$?",
+   opciones:["$P(I)=0{,}125$","$P(I)=0{,}150$","$P(I)=0{,}175$"],
+   correcta:0,
+   desarrollo:`$$P(I)=0{,}5\\times0{,}15+0{,}375\\times0{,}05+0{,}125\\times0{,}25=0{,}075+0{,}01875+0{,}03125=\\boxed{0{,}125}$$`},
+  {letra:"d",
+   pregunta:"Si se detecta un impago, ¿cuál es la probabilidad de que sea un préstamo Personal, $P(P\\mid I)$?",
+   opciones:["$P(P\\mid I)=0{,}60$","$P(P\\mid I)=0{,}50$","$P(P\\mid I)=0{,}15$"],
+   correcta:0,
+   desarrollo:`$$P(P\\mid I)=\\frac{P(P)\\cdot P(I\\mid P)}{P(I)}=\\frac{0{,}5\\times0{,}15}{0{,}125}=\\frac{0{,}075}{0{,}125}=\\boxed{0{,}60}$$
+<span class="warn">⚠</span> No confundir con $P(P)=0{,}5$: la condición «hay impago» actualiza el reparto.`},
+  {letra:"e",
+   pregunta:"Si el expediente elegido NO tiene impago, ¿cuál es la probabilidad de que sea Estudiantil?",
+   opciones:["$P(E\\mid\\bar{I})\\approx0{,}107$","$P(E\\mid\\bar{I})=0{,}125$","$P(E\\mid\\bar{I})\\approx0{,}143$"],
+   correcta:0,
+   desarrollo:`$P(\\bar{I})=0{,}875$; $P(E\\cap\\bar{I})=0{,}125\\times0{,}75=0{,}09375$<br>
+$$P(E\\mid\\bar{I})=\\frac{0{,}09375}{0{,}875}\\approx\\boxed{0{,}107}$$`},
+  {letra:"f",
+   pregunta:"¿Son incompatibles «ser préstamo Personal» y «sufrir impago»?",
+   opciones:["No: $P(P\\cap I)=0{,}075\\neq0$, pueden ocurrir a la vez","Sí: un personal no puede tener morosidad por definición","Sí: son sucesos de naturaleza diferente, luego son incompatibles"],
+   correcta:0,
+   desarrollo:`Incompatibles ↔ $P(A\\cap B)=0$. Aquí $P(P\\cap I)=0{,}075\\neq0$ → <span class="hl">NO son incompatibles.</span><br>
+<span class="warn">⚠</span> Que sean de «naturaleza diferente» no implica incompatibilidad. Un préstamo puede ser personal <em>y</em> estar en impago al mismo tiempo.`}
+]},
+
+// ───────────────────────────────────────────
+// P4 · VETERINARIA
+// ───────────────────────────────────────────
+{id:4,tipo:"Prob. total · Bayes · Independencia",titulo:"Vacunación de mascotas",
+contexto:`Una clínica veterinaria de una ciudad mediana lleva un registro de todas las consultas atendidas a lo largo del año. Al revisar los datos, la directora observa que <strong>exactamente tres de cada cinco pacientes son perros</strong> y el resto son gatos. En cuanto al estado de vacunación, hay diferencias notables entre especies: <strong>de cada diez perros atendidos, ocho están al día con el calendario vacunal</strong>. Sin embargo, <strong>esa cifra cae exactamente a la mitad en el caso de los gatos</strong>. La directora señala que algunos propietarios solo acuden en urgencias, sin seguimiento preventivo, lo que explicaría las diferencias. Conviene recordar que «estar al día» y «tener la pauta completa» se utilizan aquí como expresiones sinónimas. Se escoge al azar un expediente de consulta del año.`,
+apartados:[
+  {letra:"a",clase:"q-sucesos",
+   pregunta:"¿Cuál es la definición precisa del suceso $V$ en este problema?",
+   opciones:["$V$=«la mascota del expediente está al día con la vacunación»","$V$=«la mascota del expediente es un perro vacunado»","$V$=«el propietario lleva a su mascota al veterinario de forma regular»"],
+   correcta:0,
+   desarrollo:`• <span class="sym">D</span>=«la mascota es un perro» ; <span class="sym">$G=\\bar{D}$</span>=«es un gato»<br>
+• <span class="sym">V</span>=«está al día con la vacunación» (≡ «tiene la pauta completa»)<br>
+<span class="warn">⚠ Opción B:</span> mezcla especie y estado vacunal en un solo suceso, impidiendo escribir $P(V\\mid D)$.`},
+  {letra:"b",clase:"q-translate",
+   pregunta:"«Esa cifra cae exactamente a la mitad en el caso de los gatos». ¿Cómo se escribe ese dato?",
+   opciones:["$P(V\\mid G)=0{,}4$ (mitad de 0,8)","$P(G\\mid V)=0{,}4$","$P(V\\cap G)=0{,}4$"],
+   correcta:0,
+   desarrollo:`«De los gatos» → condicionamos sobre $G$. «La mitad de 0,8» = 0,4 → $P(V\\mid G)=0{,}4$.<br>
+Datos completos: $P(D)=0{,}6$; $P(G)=0{,}4$; $P(V\\mid D)=0{,}8$; $P(V\\mid G)=0{,}4$.`},
+  {letra:"c",
+   pregunta:"¿Qué fracción de todos los expedientes corresponde a mascotas al día con la vacunación, $P(V)$?",
+   opciones:["$P(V)=0{,}64$","$P(V)=0{,}65$","$P(V)=0{,}68$"],
+   correcta:0,
+   desarrollo:`$$P(V)=P(D)\\cdot P(V\\mid D)+P(G)\\cdot P(V\\mid G)=0{,}6\\times0{,}8+0{,}4\\times0{,}4=0{,}48+0{,}16=\\boxed{0{,}64}$$`},
+  {letra:"d",
+   pregunta:"Si una mascota no está al día con la vacunación, ¿cuál es la probabilidad de que sea un gato?",
+   opciones:["$P(G\\mid\\bar{V})\\approx0{,}667$","$P(G\\mid\\bar{V})=0{,}40$","$P(G\\mid\\bar{V})=0{,}50$"],
+   correcta:0,
+   desarrollo:`$P(\\bar{V})=1-0{,}64=0{,}36$; $P(G\\cap\\bar{V})=0{,}4\\times0{,}6=0{,}24$<br>
+$$P(G\\mid\\bar{V})=\\frac{0{,}24}{0{,}36}=\\boxed{0{,}\\overline{6}\\approx0{,}667}$$`},
+  {letra:"e",
+   pregunta:"¿Cuál es la probabilidad de que el expediente sea un perro que NO está al día?",
+   opciones:["$P(D\\cap\\bar{V})=0{,}12$","$P(D\\cap\\bar{V})=0{,}20$","$P(D\\cap\\bar{V})=0{,}48$"],
+   correcta:0,
+   desarrollo:`$$P(D\\cap\\bar{V})=P(D)\\cdot P(\\bar{V}\\mid D)=0{,}6\\times0{,}2=\\boxed{0{,}12}$$`},
+  {letra:"f",
+   pregunta:"¿Son independientes «ser perro» y «estar vacunado»?",
+   opciones:["No: $P(D\\cap V)=0{,}48\\neq P(D)\\cdot P(V)=0{,}384$","Sí: $P(V\\mid D)=0{,}8$ implica independencia","Sí: $P(D)\\cdot P(V)=0{,}6\\times0{,}64=0{,}48=P(D\\cap V)$"],
+   correcta:0,
+   desarrollo:`$P(D\\cap V)=0{,}48$; $P(D)\\cdot P(V)=0{,}6\\times0{,}64=0{,}384$<br>$0{,}48\\neq0{,}384$ → <span class="hl">NO son independientes.</span>`}
+]},
+
+// ───────────────────────────────────────────
+// P5 · CAMPAÑA PUBLICITARIA
+// ───────────────────────────────────────────
+{id:5,tipo:"Independencia · Unión · De Morgan",titulo:"Alcance publicitario en dos canales",
+contexto:`Una startup de cosmética lanza simultáneamente su nuevo producto a través de dos canales digitales: publicidad en <strong>redes sociales</strong> y <strong>email marketing</strong>. Según estudios de mercado propios, <strong>la probabilidad de que un cliente potencial de su segmento vea el anuncio de redes es del 45 %</strong>. El canal de email tiene menor alcance: <strong>solo llega a tres de cada diez clientes potenciales</strong>. El director de marketing asume que los dos canales actúan de forma <strong>independiente</strong> entre sí, argumentando que el algoritmo de redes no accede a la base de datos de correos y que los usuarios que ignoran los emails no necesariamente ignoran los anuncios en redes. La empresa quiere estimar cuántos clientes potenciales no recibirán ningún impacto publicitario y cuántos recibirán el doble impacto. Se escoge al azar un cliente potencial del segmento objetivo.`,
+apartados:[
+  {letra:"a",clase:"q-sucesos",
+   pregunta:"¿Cuál es la definición correcta del suceso $R$?",
+   opciones:["$R$=«el cliente potencial ve el anuncio por redes sociales»","$R$=«el cliente potencial está registrado en redes sociales»","$R$=«el cliente potencial compra el producto tras ver el anuncio en redes»"],
+   correcta:0,
+   desarrollo:`• <span class="sym">R</span>=«el cliente ve el anuncio por redes sociales»<br>
+• <span class="sym">M</span>=«el cliente ve el anuncio por email marketing»<br>
+<span class="warn">⚠</span> «Ver el anuncio» ≠ «estar registrado» ni «comprar». El suceso debe recoger exactamente lo que el enunciado cuantifica.`},
+  {letra:"b",clase:"q-translate",
+   pregunta:"«Los dos canales actúan de forma independiente entre sí». ¿Cuál es la traducción correcta y completa de todos los datos?",
+   opciones:["$P(R)=0{,}45$; $P(M)=0{,}30$; $R$ y $M$ son independientes","$P(R)=0{,}45$; $P(M)=0{,}30$; $P(R\\cap M)=0$ (incompatibles)","$P(R)=0{,}45$; $P(M)=0{,}30$; $P(R\\cup M)=0{,}75$"],
+   correcta:0,
+   desarrollo:`«45 %» → $P(R)=0{,}45$. «Tres de cada diez» → $P(M)=0{,}30$. «Independientes» → la condición de independencia, que <em>implica</em> $P(R\\cap M)=P(R)\\cdot P(M)$.<br>
+<span class="warn">⚠ B:</span> independiente ≠ incompatible. <span class="warn">⚠ C:</span> $0{,}75$ omite restar la intersección.`},
+  {letra:"c",
+   pregunta:"¿Cuál es la probabilidad de que el cliente reciba el impacto por <strong>ambos</strong> canales?",
+   opciones:["$P(R\\cap M)=0{,}135$","$P(R\\cap M)=0{,}750$","$P(R\\cap M)=0{,}075$"],
+   correcta:0,
+   desarrollo:`$$P(R\\cap M)=P(R)\\cdot P(M)=0{,}45\\times0{,}30=\\boxed{0{,}135}$$`},
+  {letra:"d",
+   pregunta:"¿Cuál es la probabilidad de que el cliente vea el anuncio por al menos uno de los dos canales?",
+   opciones:["$P(R\\cup M)=0{,}615$","$P(R\\cup M)=0{,}750$","$P(R\\cup M)=0{,}480$"],
+   correcta:0,
+   desarrollo:`$$P(R\\cup M)=0{,}45+0{,}30-0{,}135=\\boxed{0{,}615}$$`},
+  {letra:"e",
+   pregunta:"¿Cuál es la probabilidad de que el cliente <strong>no</strong> vea el anuncio por ningún canal?",
+   opciones:["$P(\\bar{R}\\cap\\bar{M})=0{,}385$","$P(\\bar{R}\\cap\\bar{M})=0{,}250$","$P(\\bar{R}\\cap\\bar{M})=0{,}615$"],
+   correcta:0,
+   desarrollo:`De Morgan: $\\overline{R\\cup M}=\\bar{R}\\cap\\bar{M}$.<br>
+$$P(\\bar{R}\\cap\\bar{M})=1-0{,}615=\\boxed{0{,}385}$$
+Comprobación: $P(\\bar{R})\\cdot P(\\bar{M})=0{,}55\\times0{,}70=0{,}385$ ✓`},
+  {letra:"f",
+   pregunta:"Si $P(R)$ sube a $0{,}70$ (manteniendo $P(M)=0{,}30$ e independencia), ¿cuál es la nueva probabilidad de que el cliente no reciba ningún impacto?",
+   opciones:["$P(\\bar{R}\\cap\\bar{M})=0{,}21$","$P(\\bar{R}\\cap\\bar{M})=0{,}30$","$P(\\bar{R}\\cap\\bar{M})=0{,}00$"],
+   correcta:0,
+   desarrollo:`$P(R\\cap M)=0{,}70\\times0{,}30=0{,}21$; $P(R\\cup M)=0{,}70+0{,}30-0{,}21=0{,}79$.<br>
+$$P(\\bar{R}\\cap\\bar{M})=1-0{,}79=\\boxed{0{,}21}$$
+O bien: $P(\\bar{R})\\cdot P(\\bar{M})=0{,}30\\times0{,}70=0{,}21$ ✓`}
+]}
+
+];
+
+// ══════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════
+let currentProb=0,solvedAp={},solvedP=new Set(),formularioOpen=false;
+function apKey(pi,ai){return `${pi}-${ai}`;}
+
+function buildTabs(){
+  const row=document.getElementById('tabs-row');
+  const chip=document.getElementById('header-chip');
+  row.innerHTML='';
+  problems.forEach((p,i)=>{
+    const btn=document.createElement('button');
+    btn.className='tab-btn'+(i===currentProb?' active':'')+(solvedP.has(i)?' solved':'');
+    btn.innerHTML=`<span class="tab-num">${i+1}</span>`;
+    btn.onclick=()=>{currentProb=i;formularioOpen=false;buildTabs();renderProblem();};
+    row.appendChild(btn);
+  });
+  chip.textContent=`P ${currentProb+1}/${problems.length}`;
+}
+
+function renderProblem(){
+  const pc=document.getElementById('page-content');
+  pc.style.animation='none';
+  requestAnimationFrame(()=>{pc.style.animation='';});
+  const p=problems[currentProb],pi=currentProb;
+
+  let html=`
+  <div class="prob-header">
+    <div class="prob-num-badge">${p.id}</div>
+    <div class="prob-meta"><span class="prob-type-tag">${p.tipo}</span><div class="prob-title">${p.titulo}</div></div>
+  </div>
+  <div class="contexto-card">
+    <span class="contexto-tag">📋 Lee el enunciado con atención</span>
+    <div class="contexto-text">${p.contexto}</div>
+  </div>
+  <div class="actions-bar">
+    <button class="btn-formula${formularioOpen?' open':''}" id="btn-formula" onclick="toggleFormulario()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      ${formularioOpen?'Ocultar formulario':'Ver formulario'}
+    </button>
+    <button class="btn-pizarra" onclick="openPizarra()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <div class="btn-pizarra-label"><span>Pizarra</span><span class="btn-pizarra-sub">táctil</span></div>
+    </button>
+  </div>
+  <div class="formulario-panel${formularioOpen?' open':''}" id="formulario-panel">
+    ${formularioHTML()}
+  </div>
+  <div class="apartados-wrap">`;
+
+  p.apartados.forEach((ap,ai)=>{
+    const solved=!!solvedAp[apKey(pi,ai)];
+    const extraClass=ap.clase?` ${ap.clase}`:'';
+    html+=`<div class="apartado-card${extraClass}${solved?' solved':''}" id="ap-card-${ai}">
+      <div class="apartado-head">
+        <div class="apartado-label">Apartado ${ap.letra.toUpperCase()} <span class="check-icon">✓</span></div>
+        <div class="apartado-q">${ap.pregunta}</div>
+      </div>
+      <div class="opts-list" id="opts-${ai}">
+        ${ap.opciones.map((o,oi)=>`
+          <button class="opt-btn${solved&&oi===ap.correcta?' correct':''}" ${solved?'disabled':''} onclick="checkAns(${ai},${oi})">
+            <div class="opt-letter">${['A','B','C'][oi]}</div><span>${o}</span>
+          </button>`).join('')}
+      </div>
+      <div class="feedback${solved?' correct':''}" id="fb-${ai}" style="display:${solved?'block':'none'}">${solved?'✓ Correcto.':''}</div>
+    </div>`;
+  });
+
+  html+=`</div>`;
+  const hasAny=p.apartados.some((_,ai)=>solvedAp[apKey(pi,ai)]);
+  const entries=p.apartados.map((ap,ai)=>solvedAp[apKey(pi,ai)]?`<div class="dev-entry">${ap.desarrollo}</div>`:'').join('');
+  html+=`<div class="dev-panel">
+    <div class="dev-panel-header"><div class="dev-dot${hasAny?' active':''}"></div><span class="dev-panel-title">Desarrollo paso a paso</span></div>
+    <div class="dev-entries" id="dev-entries">${hasAny?entries:'<div class="dev-empty">Responde correctamente para ver el desarrollo matemático.</div>'}</div>
+  </div>`;
+
+  pc.innerHTML=html;
+  if(window.MathJax)MathJax.typesetPromise([pc]);
+}
+
+function checkAns(ai,oi){
+  const p=problems[currentProb],ap=p.apartados[ai],pi=currentProb;
+  const btns=document.querySelectorAll(`#opts-${ai} .opt-btn`);
+  const fb=document.getElementById(`fb-${ai}`);
+  if(oi===ap.correcta){
+    btns.forEach((b,i)=>{b.disabled=true;if(i===oi)b.classList.add('correct');});
+    fb.textContent='✓ Correcto.';fb.className='feedback correct';fb.style.display='block';
+    document.getElementById(`ap-card-${ai}`).classList.add('solved');
+    solvedAp[apKey(pi,ai)]=true;
+    const entries=document.getElementById('dev-entries');
+    if(entries.querySelector('.dev-empty'))entries.innerHTML='';
+    const entry=document.createElement('div');entry.className='dev-entry';entry.innerHTML=ap.desarrollo;
+    entries.appendChild(entry);
+    document.querySelectorAll('.dev-dot').forEach(d=>d.classList.add('active'));
+    if(window.MathJax)MathJax.typesetPromise([entry]);
+    setTimeout(()=>{entries.scrollTop=entries.scrollHeight;},300);
+    if(p.apartados.every((_,j)=>solvedAp[apKey(pi,j)])){solvedP.add(pi);buildTabs();}
+  }else{
+    btns[oi].classList.add('wrong');btns[oi].disabled=true;
+    fb.textContent='Respuesta incorrecta. Inténtalo de nuevo.';fb.className='feedback wrong';fb.style.display='block';
+  }
+}
+
+function toggleFormulario(){
+  formularioOpen=!formularioOpen;
+  const panel=document.getElementById('formulario-panel');
+  const btn=document.getElementById('btn-formula');
+  if(formularioOpen){
+    panel.classList.add('open');btn.classList.add('open');
+    btn.innerHTML=btn.innerHTML.replace('Ver formulario','Ocultar formulario');
+    if(window.MathJax)MathJax.typesetPromise([panel]);
+  }else{
+    panel.classList.remove('open');btn.classList.remove('open');
+    btn.innerHTML=btn.innerHTML.replace('Ocultar formulario','Ver formulario');
+  }
+}
+
+let drawing=false,lastX=0,lastY=0,penColor='#e8e8f0',penSize=3;
+let pizCanvas=null,pizCtx=null,pizReady=false;
+function initPizarra(){
+  pizCanvas=document.getElementById('pizarra-canvas');
+  pizCtx=pizCanvas.getContext('2d');
+  resizePiz();
+  window.addEventListener('resize',resizePiz);
+  function pos(e){const r=pizCanvas.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+  function start(e){e.preventDefault();drawing=true;const p=pos(e);lastX=p.x;lastY=p.y;}
+  function move(e){
+    if(!drawing)return;e.preventDefault();
+    const p=pos(e);
+    pizCtx.beginPath();pizCtx.moveTo(lastX,lastY);pizCtx.lineTo(p.x,p.y);
+    pizCtx.strokeStyle=penColor;pizCtx.lineWidth=penSize;
+    pizCtx.lineCap='round';pizCtx.lineJoin='round';pizCtx.stroke();
+    lastX=p.x;lastY=p.y;
+  }
+  function stop(){drawing=false;}
+  pizCanvas.addEventListener('mousedown',start);pizCanvas.addEventListener('mousemove',move);
+  pizCanvas.addEventListener('mouseup',stop);pizCanvas.addEventListener('mouseleave',stop);
+  pizCanvas.addEventListener('touchstart',start,{passive:false});
+  pizCanvas.addEventListener('touchmove',move,{passive:false});
+  pizCanvas.addEventListener('touchend',stop);
+  pizReady=true;
+}
+function resizePiz(){
+  if(!pizCanvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=window.innerWidth,H=window.innerHeight-52;
+  pizCanvas.style.width=W+'px';pizCanvas.style.height=H+'px';
+  pizCanvas.width=W*dpr;pizCanvas.height=H*dpr;
+  pizCtx.scale(dpr,dpr);
+  pizCtx.fillStyle='#0e0e1a';pizCtx.fillRect(0,0,W,H);
+}
+function openPizarra(){document.getElementById('pizarra-overlay').classList.add('open');document.body.style.overflow='hidden';if(!pizReady)initPizarra();}
+function closePizarra(){document.getElementById('pizarra-overlay').classList.remove('open');document.body.style.overflow='';}
+function clearCanvas(){if(!pizCtx)return;pizCtx.fillStyle='#0e0e1a';pizCtx.fillRect(0,0,pizCanvas.width/(window.devicePixelRatio||1),pizCanvas.height/(window.devicePixelRatio||1));}
+function setColor(col,btn){penColor=col;document.querySelectorAll('.btn-color').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function setSize(sz,btn){penSize=sz;document.querySelectorAll('.btn-size').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+window.onload=()=>{buildTabs();renderProblem();};
+</script>
+<script data-goatcounter="https://gabrielrogo.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
